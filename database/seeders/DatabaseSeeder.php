@@ -2,6 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AccountType;
+use App\Enums\PeriodStatus;
+use App\Models\Account;
+use App\Models\AccountingPeriod;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Company;
@@ -97,6 +101,39 @@ class DatabaseSeeder extends Seeder
                     'selling_price' => $price,
                     'is_active' => true,
                 ]);
+            }
+
+            // Current fiscal year, open.
+            $year = (int) date('Y');
+            AccountingPeriod::updateOrCreate(
+                ['start_date' => "{$year}-01-01", 'end_date' => "{$year}-12-31"],
+                ['name' => "FY{$year}", 'fiscal_year' => $year, 'status' => PeriodStatus::Open],
+            );
+
+            // Default chart of accounts (spec #11).
+            $coa = [
+                ['1000', 'Cash', AccountType::Asset],
+                ['1010', 'Bank', AccountType::Asset],
+                ['1100', 'Accounts Receivable', AccountType::Asset],
+                ['1200', 'Inventory', AccountType::Asset],
+                ['1250', 'Input VAT Receivable', AccountType::Asset],
+                ['2000', 'Accounts Payable', AccountType::Liability],
+                ['2100', 'Goods Received Not Invoiced', AccountType::Liability],
+                ['2200', 'Output VAT Payable', AccountType::Liability],
+                ['3000', 'Share Capital', AccountType::Equity],
+                ['3100', 'Retained Earnings', AccountType::Equity],
+                ['4000', 'Sales Revenue', AccountType::Revenue],
+                ['4100', 'Sales Returns', AccountType::Revenue],
+                ['5000', 'Cost of Goods Sold', AccountType::Expense],
+                ['5100', 'Inventory Adjustment', AccountType::Expense],
+                ['5200', 'Operating Expenses', AccountType::Expense],
+            ];
+
+            foreach ($coa as [$code, $accountName, $type]) {
+                Account::updateOrCreate(
+                    ['code' => $code],
+                    ['name' => $accountName, 'type' => $type, 'is_postable' => true, 'is_active' => true],
+                );
             }
         });
 
