@@ -30,4 +30,22 @@ return [
         'password' => env('ADMIN_PASSWORD', 'password'),
     ],
 
+    // Maps posting roles to chart-of-accounts codes, so standard journal entries
+    // reference accounts by role, not hard-coded ids (spec #51, #54). These codes
+    // match the default COA seeded in DatabaseSeeder; a company may remap them.
+    'accounts' => [
+        'cash' => '1000',
+        'bank' => '1010',
+        'receivable' => '1100',
+        'inventory' => '1200',
+        'input_vat' => '1250',
+        'payable' => '2000',
+        'grni' => '2100',
+        'output_vat' => '2200',
+        'sales' => '4000',
+        'sales_returns' => '4100',
+        'cogs' => '5000',
+        'inventory_adjustment' => '5100',
+    ],
+
 ];
