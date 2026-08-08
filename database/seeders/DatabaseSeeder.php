@@ -2,8 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\Company;
+use App\Models\Product;
+use App\Models\Unit;
 use App\Models\User;
+use App\Support\CompanyContext;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -65,6 +70,36 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Main Warehouse', 'branch_id' => $branch->getKey(), 'is_active' => true],
         );
 
-        $this->command->info("Seeded admin {$adminCfg['email']} + demo company ({$company->code}).");
+        // Demo catalog — created within the company context so company_id is
+        // auto-stamped and scoped lookups resolve correctly.
+        app(CompanyContext::class)->runFor($company, function () {
+            $piece = Unit::updateOrCreate(['code' => 'PCS'], ['name' => 'Piece', 'factor' => 1]);
+            Unit::updateOrCreate(['code' => 'CTN'], [
+                'name' => 'Carton', 'base_unit_id' => $piece->getKey(), 'factor' => 24,
+            ]);
+
+            $category = Category::updateOrCreate(['name' => 'General'], ['is_active' => true]);
+            $brand = Brand::updateOrCreate(['name' => 'Generic'], ['is_active' => true]);
+
+            $items = [
+                ['A4 Paper Ream', 'PAP-A4', 320.00, 420.00],
+                ['Ballpoint Pen', 'PEN-BP', 8.00, 15.00],
+                ['Stapler', 'STP-01', 180.00, 260.00],
+            ];
+
+            foreach ($items as [$name, $sku, $cost, $price]) {
+                Product::updateOrCreate(['sku' => $sku], [
+                    'name' => $name,
+                    'unit_id' => $piece->getKey(),
+                    'category_id' => $category->getKey(),
+                    'brand_id' => $brand->getKey(),
+                    'cost_price' => $cost,
+                    'selling_price' => $price,
+                    'is_active' => true,
+                ]);
+            }
+        });
+
+        $this->command->info("Seeded admin {$adminCfg['email']} + demo company ({$company->code}) + demo catalog.");
     }
 }
