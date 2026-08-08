@@ -14,9 +14,14 @@ use Tests\TestCase;
 |
 */
 
+// Feature & end-to-end tests get a freshly-migrated, transaction-wrapped DB.
 pest()->extend(TestCase::class)
- // ->use(RefreshDatabase::class)
-    ->in('Feature');
+    ->use(RefreshDatabase::class)
+    ->in('Feature', 'EndToEnd');
+
+// Concurrency tests need REAL committed rows across parallel connections, so they
+// must NOT be wrapped in a transaction (no RefreshDatabase). See TESTING.md.
+pest()->extend(TestCase::class)->in('Concurrency');
 
 /*
 |--------------------------------------------------------------------------

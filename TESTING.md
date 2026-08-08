@@ -61,13 +61,27 @@ connections so locks actually contend:
 4. **Approval**: purchase needs manager approval → unauthorized user cannot approve.
 5. **Closed period**: close period, attempt transaction → rejected.
 
+## Test database (two-role harness)
+
+Tests run against a dedicated **`erp_test`** PostgreSQL database, connected as the
+**`erp_owner`** role (configured with `force="true"` in `phpunit.xml`) so
+`RefreshDatabase` can migrate. Feature/EndToEnd suites are transaction-wrapped;
+the Concurrency suite is **not** (it needs real committed rows across parallel
+connections). Privilege-specific tests connect as `erp_app` explicitly to assert
+the restricted role's limits.
+
+Create it once (already provisioned locally):
+```sql
+CREATE DATABASE erp_test OWNER erp_owner;   -- + erp_app CONNECT/DML grants
+```
+
 ## Quality gate (spec #63)
 
-After every phase, all must pass before proceeding — no accumulated failures:
+After every phase, all must pass before proceeding — no accumulated failures.
+One command runs the suite + static analysis:
 
 ```bash
-docker compose exec app php artisan test        # pest
-docker compose exec app ./vendor/bin/phpstan    # Larastan static analysis
-docker compose exec app php artisan migrate:fresh --seed   # migration validity
-npm run build                                    # asset build
+composer gate            # php artisan test (Pest) + phpstan (Larastan)
+# and, to validate migrations end-to-end:
+php artisan migrate:fresh --database=pgsql_owner --seed
 ```
