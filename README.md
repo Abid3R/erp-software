@@ -90,11 +90,17 @@ phase gates on `pest` + build + static analysis passing before the next.
 4. ✅ Organization (company/branch/warehouse + isolation), products, UOM
 5. ✅ Inventory ledger + weighted-average valuation (receive/issue actions, row
    locking; true parallel-connection concurrency test still to add)
-6. ⬜ Purchasing · 7. ⬜ Sales · 8. ⬜ Accounting engine
+6. 🚧 Purchasing (goods-receipt posting done; PR→PO→invoice docs + UI next)
+7. 🚧 Sales (sale + return postings done; quotation→SO→delivery docs + UI next)
+8. ✅ Accounting engine (journals, balanced posting, immutability, trial balance)
 9. ⬜ Payments / AR / AP · 10. ⬜ Approval workflows
-11. ⬜ Reports · 12. ⬜ Dashboard · 13. ⬜ Audit & notifications
+11. ⬜ Reports (P&L, Balance Sheet, GL) · 12. ⬜ Dashboard · 13. ⬜ Audit & notifications
 14. ⬜ Security hardening (ledger immutability triggers) · 15. ⬜ Concurrency & testing
 16. ⬜ Backup & deployment · 17. ⬜ Final QA
+
+**Integrated core proven** end-to-end: purchase → sale → return posts inventory
+(moving-avg) + double-entry accounting atomically, trial balance always balanced
+(`tests/EndToEnd`). 30 tests green.
 
 ## License
 
