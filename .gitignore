@@ -1,0 +1,32 @@
+# Laravel (app is scaffolded into ./app-src or repo root after Phase 2)
+/vendor
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/.phpunit.cache
+/bootstrap/cache/*.php
+npm-debug.log
+yarn-error.log
+
+# Environment & secrets — NEVER commit
+.env
+.env.*
+!.env.example
+*.pem
+auth.json
+
+# Editor / OS
+/.idea
+/.vscode
+*.swp
+.DS_Store
+Thumbs.db
+
+# Docker local volumes / backups
+/docker/postgres/data
+/backups/*.sql
+/backups/*.dump
+!/backups/.gitkeep
