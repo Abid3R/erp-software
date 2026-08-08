@@ -1,0 +1,10 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - app
+        - database/seeders
+        - database/factories
+    # Tighten toward level 8 as the domain layer matures (see TESTING.md).
