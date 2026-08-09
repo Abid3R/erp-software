@@ -105,12 +105,12 @@ class DatabaseSeeder extends Seeder
             $brand = Brand::updateOrCreate(['name' => 'Generic'], ['is_active' => true]);
 
             $items = [
-                ['A4 Paper Ream', 'PAP-A4', 320.00, 420.00],
-                ['Ballpoint Pen', 'PEN-BP', 8.00, 15.00],
-                ['Stapler', 'STP-01', 180.00, 260.00],
+                ['A4 Paper Ream', 'PAP-A4', 320.00, 420.00, 100],
+                ['Ballpoint Pen', 'PEN-BP', 8.00, 15.00, 50],
+                ['Stapler', 'STP-01', 180.00, 260.00, 10],
             ];
 
-            foreach ($items as [$name, $sku, $cost, $price]) {
+            foreach ($items as [$name, $sku, $cost, $price, $reorder]) {
                 Product::updateOrCreate(['sku' => $sku], [
                     'name' => $name,
                     'unit_id' => $piece->getKey(),
@@ -118,6 +118,7 @@ class DatabaseSeeder extends Seeder
                     'brand_id' => $brand->getKey(),
                     'cost_price' => $cost,
                     'selling_price' => $price,
+                    'reorder_level' => $reorder,
                     'is_active' => true,
                 ]);
             }
