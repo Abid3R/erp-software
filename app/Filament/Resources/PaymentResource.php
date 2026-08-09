@@ -56,6 +56,10 @@ class PaymentResource extends Resource
             ->actions([
                 Tables\Actions\Action::make('print')
                     ->icon('heroicon-o-printer')
+                    ->url(fn (Payment $record): string => route('print.payment', $record))
+                    ->openUrlInNewTab(),
+                Tables\Actions\Action::make('pdf')
+                    ->label('PDF')->icon('heroicon-o-arrow-down-tray')
                     ->action(function (Payment $record): Response {
                         $pdf = Pdf::loadView('reports.payment-pdf', [
                             'payment' => $record->load('party', 'journal'),

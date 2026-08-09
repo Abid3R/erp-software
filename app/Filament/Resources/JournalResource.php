@@ -64,6 +64,10 @@ class JournalResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\Action::make('print')
                     ->icon('heroicon-o-printer')
+                    ->url(fn (Journal $record): string => route('print.journal', $record))
+                    ->openUrlInNewTab(),
+                Tables\Actions\Action::make('pdf')
+                    ->label('PDF')->icon('heroicon-o-arrow-down-tray')
                     ->action(function (Journal $record): Response {
                         $pdf = Pdf::loadView('reports.journal-pdf', [
                             'journal' => $record->load('lines.account'),
