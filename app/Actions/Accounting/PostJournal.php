@@ -62,6 +62,8 @@ class PostJournal
                     'debit' => (string) $line['debit']->toScale($moneyScale, RoundingMode::HALF_UP),
                     'credit' => (string) $line['credit']->toScale($moneyScale, RoundingMode::HALF_UP),
                     'memo' => $line['memo'],
+                    'party_type' => $line['party']?->getMorphClass(),
+                    'party_id' => $line['party']?->getKey(),
                 ]);
             }
 

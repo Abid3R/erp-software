@@ -13,7 +13,7 @@ use InvalidArgumentException;
  * "exactly one side" invariant holds by construction. PostJournal validates and
  * persists it (spec #9, #12).
  *
- * @phpstan-type DraftLine array{account_id: int, debit: BigDecimal, credit: BigDecimal, memo: ?string}
+ * @phpstan-type DraftLine array{account_id: int, debit: BigDecimal, credit: BigDecimal, memo: ?string, party: ?Model}
  */
 class JournalDraft
 {
@@ -32,17 +32,17 @@ class JournalDraft
         return new self($date, $memo, $reference, $source);
     }
 
-    public function debit(Account|int $account, BigDecimal|string|int $amount, ?string $memo = null): static
+    public function debit(Account|int $account, BigDecimal|string|int $amount, ?string $memo = null, ?Model $party = null): static
     {
-        return $this->line($account, $amount, BigDecimal::zero(), $memo);
+        return $this->line($account, $amount, BigDecimal::zero(), $memo, $party);
     }
 
-    public function credit(Account|int $account, BigDecimal|string|int $amount, ?string $memo = null): static
+    public function credit(Account|int $account, BigDecimal|string|int $amount, ?string $memo = null, ?Model $party = null): static
     {
-        return $this->line($account, BigDecimal::zero(), $amount, $memo);
+        return $this->line($account, BigDecimal::zero(), $amount, $memo, $party);
     }
 
-    private function line(Account|int $account, BigDecimal|string|int $debit, BigDecimal|string|int $credit, ?string $memo): static
+    private function line(Account|int $account, BigDecimal|string|int $debit, BigDecimal|string|int $credit, ?string $memo, ?Model $party = null): static
     {
         $debit = BigDecimal::of($debit);
         $credit = BigDecimal::of($credit);
@@ -59,6 +59,7 @@ class JournalDraft
             'debit' => $debit,
             'credit' => $credit,
             'memo' => $memo,
+            'party' => $party,
         ];
 
         return $this;

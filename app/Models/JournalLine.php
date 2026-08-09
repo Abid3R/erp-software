@@ -7,10 +7,12 @@ use App\Exceptions\PostingException;
 use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
- * A single debit or credit against one account. Immutable once its journal is
- * posted (spec #10).
+ * A single debit or credit against one account, optionally attributed to a party
+ * (customer/supplier) for AR/AP subledgers. Immutable once its journal is posted
+ * (spec #10).
  *
  * @property string $debit
  * @property string $credit
@@ -22,6 +24,7 @@ class JournalLine extends Model
     /** @var list<string> */
     protected $fillable = [
         'company_id', 'journal_id', 'account_id', 'debit', 'credit', 'memo',
+        'party_type', 'party_id',
     ];
 
     /** @return array<string, string> */
@@ -55,5 +58,11 @@ class JournalLine extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
+    }
+
+    /** @return MorphTo<Model, $this> */
+    public function party(): MorphTo
+    {
+        return $this->morphTo();
     }
 }

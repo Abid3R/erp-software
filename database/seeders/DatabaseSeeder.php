@@ -2,17 +2,21 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Payments\RecordCustomerReceipt;
 use App\Actions\Purchasing\ReceiveGoods;
 use App\Actions\Sales\RecordSale;
 use App\Enums\AccountType;
+use App\Enums\PaymentMethod;
 use App\Enums\PeriodStatus;
 use App\Models\Account;
 use App\Models\AccountingPeriod;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\Customer;
 use App\Models\Journal;
 use App\Models\Product;
+use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\User;
 use App\Models\Warehouse;
@@ -140,6 +144,9 @@ class DatabaseSeeder extends Seeder
                 );
             }
 
+            $customer = Customer::updateOrCreate(['code' => 'CUST-001'], ['name' => 'Acme Retail', 'is_active' => true]);
+            Supplier::updateOrCreate(['code' => 'SUP-001'], ['name' => 'Global Supplies Ltd.', 'is_active' => true]);
+
             // Demo transactions so the dashboard shows real figures. Guarded so a
             // repeat `db:seed` does not double-post to the immutable ledger.
             $warehouse = Warehouse::query()->where('code', 'MAIN')->first();
@@ -148,7 +155,8 @@ class DatabaseSeeder extends Seeder
             if ($warehouse !== null && $demoProduct !== null && Journal::query()->doesntExist()) {
                 $today = date('Y-m-d');
                 app(ReceiveGoods::class)->handle($warehouse, $demoProduct, '100', '320', $today);
-                app(RecordSale::class)->handle($warehouse, $demoProduct, '15', '420', $today);
+                app(RecordSale::class)->handle($warehouse, $demoProduct, '15', '420', $today, customer: $customer);
+                app(RecordCustomerReceipt::class)->handle($customer, '3000', PaymentMethod::Cash, $today, 'SEED-RCPT-1');
             }
         });
 

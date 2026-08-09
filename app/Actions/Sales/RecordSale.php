@@ -7,6 +7,7 @@ use App\Actions\Inventory\IssueStock;
 use App\Domain\Accounting\JournalDraft;
 use App\Domain\Accounting\LedgerAccounts;
 use App\Enums\InventoryTransactionType;
+use App\Models\Customer;
 use App\Models\InventoryTransaction;
 use App\Models\Journal;
 use App\Models\Product;
@@ -43,10 +44,11 @@ class RecordSale
         string $date,
         ?Model $reference = null,
         ?string $documentNumber = null,
+        ?Customer $customer = null,
     ): array {
         $moneyScale = (int) config('erp.currency.precision', 2);
 
-        return DB::transaction(function () use ($warehouse, $product, $quantity, $unitPrice, $date, $reference, $documentNumber, $moneyScale) {
+        return DB::transaction(function () use ($warehouse, $product, $quantity, $unitPrice, $date, $reference, $documentNumber, $customer, $moneyScale) {
             $company = $warehouse->company;
             $companyId = $warehouse->company_id;
 
@@ -61,7 +63,7 @@ class RecordSale
             $cogs = BigDecimal::of($issue->total_cost);
 
             $draft = JournalDraft::make($date, memo: "Sale: {$product->sku}", reference: $documentNumber, source: $reference)
-                ->debit($this->accounts->get('receivable', $companyId), $revenue)
+                ->debit($this->accounts->get('receivable', $companyId), $revenue, party: $customer)
                 ->credit($this->accounts->get('sales', $companyId), $revenue);
 
             if ($cogs->isPositive()) {
