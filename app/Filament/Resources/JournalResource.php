@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\JournalStatus;
 use App\Filament\Resources\JournalResource\Pages;
 use App\Models\Journal;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
@@ -12,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Read-only journal browser (spec #31). Journals are posted by the engine and are
@@ -58,7 +60,19 @@ class JournalResource extends Resource
                     'posted' => 'Posted', 'draft' => 'Draft',
                 ])->default(JournalStatus::Posted->value),
             ])
-            ->actions([Tables\Actions\ViewAction::make()])
+            ->actions([
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\Action::make('print')
+                    ->icon('heroicon-o-printer')
+                    ->action(function (Journal $record): Response {
+                        $pdf = Pdf::loadView('reports.journal-pdf', [
+                            'journal' => $record->load('lines.account'),
+                            'company' => $record->company,
+                        ]);
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), "journal-{$record->getKey()}.pdf");
+                    }),
+            ])
             ->defaultSort('date', 'desc');
     }
 

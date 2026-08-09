@@ -17,6 +17,8 @@ dataset('adminPages', [
     'suppliers' => '/admin/suppliers',
     'stock levels' => '/admin/stocks',
     'journals' => '/admin/journals',
+    'general ledger' => '/admin/general-ledger',
+    'payments' => '/admin/payments',
 ]);
 
 it('renders admin page for a company member', function (string $path) {

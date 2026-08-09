@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Domain\Accounting\PartyLedger;
 use App\Filament\Resources\SupplierResource\Pages;
 use App\Models\Supplier;
 use Filament\Forms;
@@ -37,6 +38,9 @@ class SupplierResource extends Resource
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('code')->searchable()->toggleable(),
                 Tables\Columns\TextColumn::make('phone')->toggleable(),
+                Tables\Columns\TextColumn::make('payable')->label('Payable')
+                    ->money(config('erp.currency.code'))
+                    ->state(fn (Supplier $record): string => (string) PartyLedger::payable($record)),
                 Tables\Columns\IconColumn::make('is_active')->boolean()->sortable(),
             ])
             ->filters([Tables\Filters\TernaryFilter::make('is_active')->label('Active')])

@@ -1,4 +1,8 @@
 <x-filament-panels::page>
+    <form wire:submit.prevent>
+        {{ $this->form }}
+    </form>
+
     @php($report = $this->getReportData())
 
     @if ($report['pl'] === null)

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Domain\Accounting\PartyLedger;
 use App\Filament\Resources\CustomerResource\Pages;
 use App\Models\Customer;
 use Filament\Forms;
@@ -37,6 +38,9 @@ class CustomerResource extends Resource
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('code')->searchable()->toggleable(),
                 Tables\Columns\TextColumn::make('phone')->toggleable(),
+                Tables\Columns\TextColumn::make('receivable')->label('Receivable')
+                    ->money(config('erp.currency.code'))
+                    ->state(fn (Customer $record): string => (string) PartyLedger::receivable($record)),
                 Tables\Columns\IconColumn::make('is_active')->boolean()->sortable(),
             ])
             ->filters([Tables\Filters\TernaryFilter::make('is_active')->label('Active')])
