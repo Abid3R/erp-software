@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\JournalStatus;
 use App\Exceptions\PostingException;
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompany;
 use Brick\Math\BigDecimal;
 use Illuminate\Database\Eloquent\Model;
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class Journal extends Model
 {
-    use BelongsToCompany;
+    use Auditable, BelongsToCompany;
 
     /** @var list<string> */
     protected $fillable = [
