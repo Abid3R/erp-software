@@ -55,7 +55,10 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
                 // Establish the active company from the user's memberships after
                 // authentication, before any resource query runs (spec #6).
+                // isPersistent: also run on Livewire AJAX updates (table paging,
+                // page actions, PDF export) — otherwise CompanyContext would be
+                // unset there and company scoping would not be enforced.
                 SetCurrentCompany::class,
-            ]);
+            ], isPersistent: true);
     }
 }

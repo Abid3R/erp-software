@@ -78,9 +78,12 @@ class Reports extends Page implements HasForms
     public function downloadPdf(): Response
     {
         $company = app(CompanyContext::class)->current();
+        $report = $this->getReportData();
+
+        abort_if($report['pl'] === null, 400, 'No active company selected.');
 
         $pdf = Pdf::loadView('reports.pdf', [
-            'report' => $this->getReportData(),
+            'report' => $report,
             'company' => $company,
             'from' => $this->from,
             'to' => $this->to,
