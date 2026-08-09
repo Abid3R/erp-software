@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Purchasing\ReceiveGoods;
+use App\Actions\Sales\RecordSale;
 use App\Enums\AccountType;
 use App\Enums\PeriodStatus;
 use App\Models\Account;
@@ -9,9 +11,11 @@ use App\Models\AccountingPeriod;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\Journal;
 use App\Models\Product;
 use App\Models\Unit;
 use App\Models\User;
+use App\Models\Warehouse;
 use App\Support\CompanyContext;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -134,6 +138,17 @@ class DatabaseSeeder extends Seeder
                     ['code' => $code],
                     ['name' => $accountName, 'type' => $type, 'is_postable' => true, 'is_active' => true],
                 );
+            }
+
+            // Demo transactions so the dashboard shows real figures. Guarded so a
+            // repeat `db:seed` does not double-post to the immutable ledger.
+            $warehouse = Warehouse::query()->where('code', 'MAIN')->first();
+            $demoProduct = Product::query()->where('sku', 'PAP-A4')->first();
+
+            if ($warehouse !== null && $demoProduct !== null && Journal::query()->doesntExist()) {
+                $today = date('Y-m-d');
+                app(ReceiveGoods::class)->handle($warehouse, $demoProduct, '100', '320', $today);
+                app(RecordSale::class)->handle($warehouse, $demoProduct, '15', '420', $today);
             }
         });
 

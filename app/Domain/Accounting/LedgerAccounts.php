@@ -34,4 +34,14 @@ class LedgerAccounts
 
         return $account;
     }
+
+    /** Resolve a role's account, or null if unmapped/missing (for reports/widgets). */
+    public function tryGet(string $role, ?int $companyId = null): ?Account
+    {
+        try {
+            return $this->get($role, $companyId);
+        } catch (PostingException) {
+            return null;
+        }
+    }
 }

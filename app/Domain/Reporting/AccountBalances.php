@@ -4,6 +4,7 @@ namespace App\Domain\Reporting;
 
 use App\Enums\AccountType;
 use App\Enums\JournalStatus;
+use App\Models\Account;
 use App\Models\JournalLine;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -43,6 +44,14 @@ final class AccountBalances
             ->first();
 
         return BigDecimal::of($row->d)->minus(BigDecimal::of($row->c))->toScale(self::SCALE, RoundingMode::HALF_UP);
+    }
+
+    /** Balance of one account on its own normal side (positive = normal balance). */
+    public static function netForAccount(Account $account, ?string $from = null, ?string $to = null): BigDecimal
+    {
+        $raw = self::debitMinusCredit($account->getKey(), $from, $to);
+
+        return $account->type->isDebitNormal() ? $raw : $raw->negated();
     }
 
     private static function base(?int $companyId, ?string $from, ?string $to): Builder
