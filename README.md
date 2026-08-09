@@ -100,7 +100,7 @@ phase gates on `pest` + build + static analysis passing before the next.
    per-party subledger from the ledger · 10. ⬜ Approval workflows
 11. ✅ Reports — P&L, Balance Sheet, General Ledger, Trial Balance (from the ledger)
 12. ✅ Dashboard — real financial KPIs (revenue, net profit, inventory, AR/AP)
-13. ⬜ Audit & notifications
+13. 🚧 Audit ✅ (immutable, append-only log of changes/postings) · notifications ⬜
 14. 🚧 Security hardening — ledger immutability triggers ✅ (posted journals +
     inventory rows immutable at the DB level); further hardening pending
 15. ⬜ Concurrency test · 16. ⬜ Backup & deployment · 17. ⬜ Final QA
