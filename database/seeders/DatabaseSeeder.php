@@ -5,16 +5,21 @@ namespace Database\Seeders;
 use App\Actions\Payments\RecordCustomerReceipt;
 use App\Actions\Purchasing\ReceiveGoods;
 use App\Actions\Sales\RecordSale;
+use App\Actions\Workflow\SubmitForApproval;
 use App\Enums\AccountType;
+use App\Enums\PaymentDirection;
 use App\Enums\PaymentMethod;
 use App\Enums\PeriodStatus;
 use App\Models\Account;
 use App\Models\AccountingPeriod;
+use App\Models\ApprovalFlow;
+use App\Models\ApprovalRequest;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Journal;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\Unit;
@@ -23,6 +28,7 @@ use App\Models\Warehouse;
 use App\Support\CompanyContext;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -81,6 +87,11 @@ class DatabaseSeeder extends Seeder
             ['code' => 'MAIN'],
             ['name' => 'Main Warehouse', 'branch_id' => $branch->getKey(), 'is_active' => true],
         );
+
+        // Roles + assign to admin so they can exercise approvals.
+        Role::findOrCreate('manager');
+        Role::findOrCreate('director');
+        $admin->syncRoles(['manager', 'director']);
 
         // Demo catalog — created within the company context so company_id is
         // auto-stamped and scoped lookups resolve correctly.
@@ -157,6 +168,31 @@ class DatabaseSeeder extends Seeder
                 app(ReceiveGoods::class)->handle($warehouse, $demoProduct, '100', '320', $today);
                 app(RecordSale::class)->handle($warehouse, $demoProduct, '15', '420', $today, customer: $customer);
                 app(RecordCustomerReceipt::class)->handle($customer, '3000', PaymentMethod::Cash, $today, 'SEED-RCPT-1');
+            }
+
+            // Approval flow for large supplier payments + a demo pending request,
+            // so the Approvals inbox has content for the admin (manager/director).
+            if (ApprovalRequest::query()->doesntExist()) {
+                $flow = ApprovalFlow::updateOrCreate(
+                    ['subject_type' => Payment::class, 'min_amount' => 25000],
+                    ['name' => 'Payments >= 25k', 'max_amount' => null, 'is_active' => true],
+                );
+                $flow->steps()->updateOrCreate(['sequence' => 1], ['role' => 'manager', 'name' => 'Manager approval']);
+                $flow->steps()->updateOrCreate(['sequence' => 2], ['role' => 'director', 'name' => 'Director approval']);
+
+                $supplier = Supplier::query()->where('code', 'SUP-001')->first();
+                if ($supplier !== null) {
+                    $pending = Payment::create([
+                        'direction' => PaymentDirection::Payment,
+                        'party_type' => $supplier->getMorphClass(),
+                        'party_id' => $supplier->getKey(),
+                        'date' => date('Y-m-d'),
+                        'amount' => 50000,
+                        'method' => PaymentMethod::Bank,
+                        'idempotency_key' => 'SEED-APPROVAL-1',
+                    ]);
+                    app(SubmitForApproval::class)->handle($pending, '50000');
+                }
             }
         });
 
