@@ -95,7 +95,8 @@ phase gates on `pest` + build + static analysis passing before the next.
 8. ✅ Accounting engine (journals, balanced posting, immutability, trial balance)
 9. ⬜ Payments / AR / AP · 10. ⬜ Approval workflows
 11. ✅ Reports — P&L, Balance Sheet, General Ledger, Trial Balance (from the ledger)
-12. ⬜ Dashboard · 13. ⬜ Audit & notifications
+12. ✅ Dashboard — real financial KPIs (revenue, net profit, inventory, AR/AP)
+13. ⬜ Audit & notifications
 14. 🚧 Security hardening — ledger immutability triggers ✅ (posted journals +
     inventory rows immutable at the DB level); further hardening pending
 15. ⬜ Concurrency test · 16. ⬜ Backup & deployment · 17. ⬜ Final QA
