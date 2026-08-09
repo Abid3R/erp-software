@@ -105,7 +105,12 @@ phase gates on `pest` + build + static analysis passing before the next.
 14. 🚧 Security hardening — ledger immutability triggers ✅ (posted journals +
     inventory rows immutable at the DB level); further hardening pending
 15. ✅ Concurrency test — real parallel-process no-oversell proof (FOR UPDATE)
-16. ⬜ Backup & deployment · 17. ⬜ Final QA
+16. 🚧 Backup & deployment — native + Docker docs/scripts (restore drill pending)
+17. ⬜ Final QA sweep
+
+**Admin UI:** Dashboard (live KPIs), Products, Customers/Suppliers, Chart of
+Accounts, Journals, Reports (P&L/BS/TB), Stock Levels (low-stock badge),
+Approvals inbox, Audit Log — all company-scoped.
 
 **Integrated core proven** end-to-end: purchase → sale → return posts inventory
 (moving-avg) + double-entry accounting atomically, trial balance always balanced
