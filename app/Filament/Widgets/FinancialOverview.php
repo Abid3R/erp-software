@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Domain\Reporting\DashboardMetrics;
 use App\Support\CompanyContext;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Brick\Math\BigDecimal;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -14,6 +15,8 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
  */
 class FinancialOverview extends BaseWidget
 {
+    use HasWidgetShield;
+
     protected static ?int $sort = -3;
 
     // Render server-side on first load (the figures are cheap ledger aggregates).

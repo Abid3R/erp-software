@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Company;
-use App\Models\User;
 use App\Support\CompanyContext;
 
 beforeEach(fn () => app(CompanyContext::class)->forget());
@@ -21,10 +20,9 @@ dataset('adminPages', [
     'payments' => '/admin/payments',
 ]);
 
-it('renders admin page for a company member', function (string $path) {
+it('renders admin page for an authorised user', function (string $path) {
     $company = Company::factory()->create();
-    $user = User::factory()->create();
-    $user->companies()->attach($company, ['is_default' => true]);
+    $user = superAdminFor($company);
 
     $this->actingAs($user)->get($path)->assertOk();
 })->with('adminPages');

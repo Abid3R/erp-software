@@ -8,6 +8,7 @@ use App\Domain\Reporting\ProfitAndLoss;
 use App\Models\Company;
 use App\Support\CompanyContext;
 use Barryvdh\DomPDF\Facade\Pdf;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Brick\Math\BigDecimal;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -24,6 +25,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class Reports extends Page implements HasForms
 {
+    use HasPageShield;
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';

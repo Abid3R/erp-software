@@ -7,10 +7,9 @@ use App\Support\CompanyContext;
 beforeEach(fn () => app(CompanyContext::class)->forget());
 afterEach(fn () => app(CompanyContext::class)->forget());
 
-it('renders the products page for a company member', function () {
+it('renders the products page for an authorised user', function () {
     $company = Company::factory()->create();
-    $user = User::factory()->create();
-    $user->companies()->attach($company, ['is_default' => true]);
+    $user = superAdminFor($company);
 
     $this->actingAs($user)
         ->get('/admin/products')

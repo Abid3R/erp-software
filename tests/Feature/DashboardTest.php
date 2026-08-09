@@ -8,7 +8,6 @@ use App\Enums\PeriodStatus;
 use App\Models\Account;
 use App\Models\AccountingPeriod;
 use App\Models\Company;
-use App\Models\User;
 use App\Support\CompanyContext;
 
 beforeEach(fn () => app(CompanyContext::class)->forget());
@@ -46,10 +45,9 @@ it('computes dashboard metrics from the ledger', function () {
         ->and((string) $m['payables'])->toBe('3200.00');
 });
 
-it('renders the dashboard with the financial overview for a member', function () {
+it('renders the dashboard with the financial overview for an authorised user', function () {
     $company = Company::factory()->create();
-    $user = User::factory()->create();
-    $user->companies()->attach($company, ['is_default' => true]);
+    $user = superAdminFor($company); // widget is Shield-gated
 
     $this->actingAs($user)
         ->get('/admin')

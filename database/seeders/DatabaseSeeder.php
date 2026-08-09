@@ -27,7 +27,9 @@ use App\Models\User;
 use App\Models\Warehouse;
 use App\Support\CompanyContext;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
@@ -88,10 +90,32 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Main Warehouse', 'branch_id' => $branch->getKey(), 'is_active' => true],
         );
 
-        // Roles + assign to admin so they can exercise approvals.
+        // Regenerate Shield permissions (created by a command, not migrations, so
+        // they must be re-established after migrate:fresh).
+        Artisan::call('shield:generate', [
+            '--all' => true, '--option' => 'permissions', '--panel' => 'admin', '--no-interaction' => true,
+        ]);
+
+        // Roles: super_admin (full access via Shield's gate bypass) + a read-only
+        // Accountant, an Editor (report customisation), and approval roles.
+        $superAdmin = Role::findOrCreate('super_admin');
+        $superAdmin->givePermissionTo(Permission::all());
+
+        $accountant = Role::findOrCreate('accountant');
+        $accountant->syncPermissions(
+            Permission::query()
+                ->where('name', 'like', 'view_%')
+                ->orWhere('name', 'like', 'page_%')
+                ->orWhere('name', 'like', 'widget_%')
+                ->pluck('name'),
+        );
+
+        Role::findOrCreate('editor');
         Role::findOrCreate('manager');
         Role::findOrCreate('director');
-        $admin->syncRoles(['manager', 'director']);
+
+        // Admin is the super admin and also an approver (manager + director).
+        $admin->syncRoles(['super_admin', 'manager', 'director']);
 
         // Demo catalog — created within the company context so company_id is
         // auto-stamped and scoped lookups resolve correctly.

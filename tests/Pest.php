@@ -49,7 +49,28 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * A user who is a member of the given company and holds Shield's super_admin role
+ * (bypasses all resource policies). Use for panel tests that aren't about RBAC.
+ */
+function superAdminFor(App\Models\Company $company): App\Models\User
 {
-    // ..
+    $user = App\Models\User::factory()->create();
+    $user->companies()->attach($company, ['is_default' => true]);
+    $user->assignRole(Spatie\Permission\Models\Role::findOrCreate('super_admin'));
+
+    return $user;
+}
+
+/** A company member with the given roles (created if missing) and no others. */
+function memberWithRoles(App\Models\Company $company, string ...$roles): App\Models\User
+{
+    $user = App\Models\User::factory()->create();
+    $user->companies()->attach($company, ['is_default' => true]);
+
+    foreach ($roles as $role) {
+        $user->assignRole(Spatie\Permission\Models\Role::findOrCreate($role));
+    }
+
+    return $user;
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Domain\Reporting\GeneralLedger as GeneralLedgerReport;
 use App\Models\Account;
 use Barryvdh\DomPDF\Facade\Pdf;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Brick\Math\BigDecimal;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -21,6 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class GeneralLedger extends Page implements HasForms
 {
+    use HasPageShield;
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-list-bullet';
