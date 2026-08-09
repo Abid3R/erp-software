@@ -104,7 +104,8 @@ phase gates on `pest` + build + static analysis passing before the next.
 13. 🚧 Audit ✅ (immutable, append-only log of changes/postings) · notifications ⬜
 14. 🚧 Security hardening — ledger immutability triggers ✅ (posted journals +
     inventory rows immutable at the DB level); further hardening pending
-15. ⬜ Concurrency test · 16. ⬜ Backup & deployment · 17. ⬜ Final QA
+15. ✅ Concurrency test — real parallel-process no-oversell proof (FOR UPDATE)
+16. ⬜ Backup & deployment · 17. ⬜ Final QA
 
 **Integrated core proven** end-to-end: purchase → sale → return posts inventory
 (moving-avg) + double-entry accounting atomically, trial balance always balanced
