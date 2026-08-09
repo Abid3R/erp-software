@@ -5,24 +5,27 @@ A production-grade, modular ERP for small-to-medium businesses, built on a
 software-licensing cost**. Designed to be trusted with real money, inventory,
 employees, customers, and financial records.
 
-> **Status: Phase 1 (Architecture & Documentation).** No application code is
-> scaffolded yet. This repository currently contains the design blueprint,
-> the local Docker stack, and the phased implementation plan. See
-> [Roadmap](#roadmap). Nothing here is a fake or placeholder feature — modules
-> are documented before they are built and marked clearly when incomplete.
+> **Status: backend core complete and tested (36 tests green).** Built and
+> working end-to-end: multi-company isolation, products & UOM, the inventory
+> ledger with moving weighted-average costing, the double-entry accounting engine,
+> integrated purchase/sale/return postings, database-enforced ledger immutability,
+> financial statements (P&L / Balance Sheet / General Ledger), and a live
+> financial-KPI dashboard. Remaining: payments/AR-AP, approval workflows, audit
+> log, and more admin screens — see [Roadmap](#roadmap). Nothing here is a fake or
+> placeholder feature — modules are documented before they are built and every
+> commit leaves the test suite green.
 
 ## Stack (all free / open-source)
 
 | Concern | Choice |
 |---|---|
-| Backend framework | Laravel (PHP 8.3) |
-| Admin/business UI | Filament (Livewire / Alpine.js) |
-| Database | PostgreSQL 16 |
+| Backend framework | Laravel 12 (PHP 8.4) |
+| Admin/business UI | Filament 3 (Livewire / Alpine.js) |
+| Database | PostgreSQL 18 |
 | Authorization | Spatie Laravel Permission + Filament Shield + Laravel Policies |
-| Money math | `brick/money` + bcmath over `NUMERIC` columns (no floats) |
-| Testing | Pest PHP |
-| Local runtime | Docker Compose (PHP-FPM, nginx, PostgreSQL) |
-| Static analysis | Larastan (PHPStan) |
+| Money math | `brick/money` + `brick/math` over `NUMERIC` columns (no floats) |
+| Testing | Pest 4 · static analysis: Larastan (PHPStan) |
+| Local runtime | Native (Scoop) — primary; Docker Compose alternative |
 
 External services (mail, SMS, S3, payment gateways) are **optional, replaceable
 adapters**. The core ERP never depends on a paid external service.
@@ -103,7 +106,8 @@ phase gates on `pest` + build + static analysis passing before the next.
 
 **Integrated core proven** end-to-end: purchase → sale → return posts inventory
 (moving-avg) + double-entry accounting atomically, trial balance always balanced
-(`tests/EndToEnd`). 30 tests green.
+(`tests/EndToEnd`). Run the full suite + static analysis with `composer gate`
+(36 tests green).
 
 ## License
 
