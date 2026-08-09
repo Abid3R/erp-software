@@ -96,7 +96,8 @@ phase gates on `pest` + build + static analysis passing before the next.
 6. 🚧 Purchasing (goods-receipt posting done; PR→PO→invoice docs + UI next)
 7. 🚧 Sales (sale + return postings done; quotation→SO→delivery docs + UI next)
 8. ✅ Accounting engine (journals, balanced posting, immutability, trial balance)
-9. ⬜ Payments / AR / AP · 10. ⬜ Approval workflows
+9. ✅ Payments / AR / AP — customers, suppliers, receipts/payments (idempotent),
+   per-party subledger from the ledger · 10. ⬜ Approval workflows
 11. ✅ Reports — P&L, Balance Sheet, General Ledger, Trial Balance (from the ledger)
 12. ✅ Dashboard — real financial KPIs (revenue, net profit, inventory, AR/AP)
 13. ⬜ Audit & notifications
