@@ -13,6 +13,7 @@ use App\Enums\PeriodStatus;
 use App\Models\Account;
 use App\Models\AccountingPeriod;
 use App\Models\ApprovalFlow;
+use App\Models\Attendance;
 use App\Models\ApprovalRequest;
 use App\Models\Brand;
 use App\Models\Category;
@@ -25,6 +26,7 @@ use App\Models\Journal;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ReportSetting;
+use App\Models\Shift;
 use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\User;
@@ -133,6 +135,8 @@ class DatabaseSeeder extends Seeder
                 ->where('name', 'like', '%_employee')
                 ->orWhere('name', 'like', '%_department')
                 ->orWhere('name', 'like', '%_designation')
+                ->orWhere('name', 'like', '%_shift')
+                ->orWhere('name', 'like', '%_attendance')
                 ->pluck('name'),
         );
 
@@ -243,6 +247,18 @@ class DatabaseSeeder extends Seeder
                     'manager_id' => $boss->getKey(), 'employment_type' => 'contract', 'status' => 'active',
                     'join_date' => '2024-06-01', 'base_salary' => 45000,
                 ]);
+            }
+
+            // Demo shifts + attendance (metrics auto-computed on save).
+            if (Shift::query()->doesntExist()) {
+                $morning = Shift::create(['name' => 'Morning', 'code' => 'MORNING', 'start_time' => '09:00', 'end_time' => '17:00', 'break_minutes' => 60]);
+                Shift::create(['name' => 'Night', 'code' => 'NIGHT', 'start_time' => '22:00', 'end_time' => '06:00', 'break_minutes' => 30]);
+
+                $emp = Employee::query()->where('employee_code', 'EMP-002')->first();
+                if ($emp !== null) {
+                    Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-03', 'check_in' => '09:12', 'check_out' => '17:45', 'status' => 'late']);
+                    Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-04', 'check_in' => '08:58', 'check_out' => '17:05', 'status' => 'present']);
+                }
             }
 
             // Demo report branding so documents show a letterhead/footer.
