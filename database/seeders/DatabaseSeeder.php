@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Hr\GeneratePayroll;
 use App\Actions\Hr\GenerateRoster;
 use App\Actions\Payments\RecordCustomerReceipt;
 use App\Actions\Purchasing\ReceiveGoods;
@@ -27,6 +28,7 @@ use App\Models\Journal;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\Payment;
+use App\Models\PayrollRun;
 use App\Models\Product;
 use App\Models\ReportSetting;
 use App\Models\Roster;
@@ -144,6 +146,7 @@ class DatabaseSeeder extends Seeder
                 ->orWhere('name', 'like', '%_roster')
                 ->orWhere('name', 'like', '%_leave_type')
                 ->orWhere('name', 'like', '%_leave_request')
+                ->orWhere('name', 'like', '%_payroll_run')
                 ->pluck('name'),
         );
 
@@ -281,6 +284,23 @@ class DatabaseSeeder extends Seeder
                         'start_date' => '2026-09-10', 'end_date' => '2026-09-12',
                         'reason' => 'Family trip', 'status' => 'pending',
                     ]);
+                }
+            }
+
+            // Demo payroll run with sample allowances/deductions on one payslip.
+            if (PayrollRun::query()->doesntExist()) {
+                $payrollEmpIds = Employee::query()->pluck('id')->map(fn ($id): int => (int) $id)->all();
+                if ($payrollEmpIds !== []) {
+                    $run = app(GeneratePayroll::class)->handle(
+                        'Payroll '.now()->format('M Y'), (int) now()->year, (int) now()->month, $payrollEmpIds,
+                    );
+                    $slip = $run->payslips()->first();
+                    if ($slip !== null) {
+                        $slip->update([
+                            'allowances' => [['label' => 'House Rent', 'amount' => '5000'], ['label' => 'Medical', 'amount' => '1500']],
+                            'deductions' => [['label' => 'Provident Fund', 'amount' => '2000']],
+                        ]);
+                    }
                 }
             }
 

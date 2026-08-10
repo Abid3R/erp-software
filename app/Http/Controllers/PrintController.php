@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Hr\RosterGenerator;
 use App\Models\Journal;
 use App\Models\Payment;
+use App\Models\Payslip;
 use App\Models\Roster;
 use App\Support\CompanyContext;
 use Illuminate\Contracts\View\View;
@@ -69,6 +70,17 @@ class PrintController extends Controller
             'dates' => $dates,
             'employees' => $employees,
             'grid' => $grid,
+        ]);
+    }
+
+    public function payslip(Payslip $payslip): View
+    {
+        $this->authorizeCompany((int) $payslip->company_id);
+
+        return view('print.payslip', [
+            'payslip' => $payslip->load(['employee.department', 'employee.designation', 'run', 'company']),
+            'company' => $payslip->company,
+            'setting' => $payslip->company?->reportSettingOrNew(),
         ]);
     }
 

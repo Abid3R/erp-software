@@ -26,6 +26,7 @@ dataset('adminPages', [
     'rosters' => '/admin/rosters',
     'leave types' => '/admin/leave-types',
     'leave requests' => '/admin/leave-requests',
+    'payroll' => '/admin/payroll-runs',
     'users' => '/admin/users',
     'report settings' => '/admin/report-settings',
 ]);

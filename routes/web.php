@@ -12,4 +12,5 @@ Route::middleware(['web', 'auth'])->prefix('print')->name('print.')->group(funct
     Route::get('payment/{payment}', [PrintController::class, 'payment'])->name('payment');
     Route::get('journal/{journal}', [PrintController::class, 'journal'])->name('journal');
     Route::get('roster/{roster}', [PrintController::class, 'roster'])->name('roster');
+    Route::get('payslip/{payslip}', [PrintController::class, 'payslip'])->name('payslip');
 });
