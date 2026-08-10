@@ -29,6 +29,24 @@ class Shift extends Model
         return $this->name.' ('.substr((string) $this->start_time, 0, 5).'–'.substr((string) $this->end_time, 0, 5).')';
     }
 
+    /** Scheduled working minutes (span − break); night shifts cross midnight. */
+    public function scheduledMinutes(): int
+    {
+        $toMinutes = static function (string $time): int {
+            $parts = explode(':', $time);
+
+            return ((int) $parts[0]) * 60 + ((int) ($parts[1] ?? 0));
+        };
+
+        $start = $toMinutes((string) $this->start_time);
+        $end = $toMinutes((string) $this->end_time);
+        if ($end < $start) {
+            $end += 1440;
+        }
+
+        return max(0, ($end - $start) - $this->break_minutes);
+    }
+
     /** @return HasMany<Attendance, $this> */
     public function attendances(): HasMany
     {

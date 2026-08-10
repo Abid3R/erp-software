@@ -23,6 +23,7 @@ dataset('adminPages', [
     'designations' => '/admin/designations',
     'shifts' => '/admin/shifts',
     'attendance' => '/admin/attendances',
+    'rosters' => '/admin/rosters',
     'users' => '/admin/users',
     'report settings' => '/admin/report-settings',
 ]);

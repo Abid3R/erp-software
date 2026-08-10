@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Hr\GenerateRoster;
 use App\Actions\Payments\RecordCustomerReceipt;
 use App\Actions\Purchasing\ReceiveGoods;
 use App\Actions\Sales\RecordSale;
@@ -26,6 +27,7 @@ use App\Models\Journal;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ReportSetting;
+use App\Models\Roster;
 use App\Models\Shift;
 use App\Models\Supplier;
 use App\Models\Unit;
@@ -137,6 +139,7 @@ class DatabaseSeeder extends Seeder
                 ->orWhere('name', 'like', '%_designation')
                 ->orWhere('name', 'like', '%_shift')
                 ->orWhere('name', 'like', '%_attendance')
+                ->orWhere('name', 'like', '%_roster')
                 ->pluck('name'),
         );
 
@@ -258,6 +261,20 @@ class DatabaseSeeder extends Seeder
                 if ($emp !== null) {
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-03', 'check_in' => '09:12', 'check_out' => '17:45', 'status' => 'late']);
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-04', 'check_in' => '08:58', 'check_out' => '17:05', 'status' => 'present']);
+                }
+            }
+
+            // Demo auto-generated roster for the current week.
+            if (Roster::query()->doesntExist()) {
+                $empIds = Employee::query()->pluck('id')->map(fn ($id): int => (int) $id)->all();
+                $shiftIds = Shift::query()->pluck('id')->map(fn ($id): int => (int) $id)->all();
+                if ($empIds !== [] && $shiftIds !== []) {
+                    app(GenerateRoster::class)->handle(
+                        'Weekly Roster',
+                        now()->startOfWeek()->format('Y-m-d'),
+                        now()->startOfWeek()->addDays(6)->format('Y-m-d'),
+                        $empIds, $shiftIds, 1, 48,
+                    );
                 }
             }
 

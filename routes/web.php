@@ -11,4 +11,5 @@ Route::get('/', function () {
 Route::middleware(['web', 'auth'])->prefix('print')->name('print.')->group(function () {
     Route::get('payment/{payment}', [PrintController::class, 'payment'])->name('payment');
     Route::get('journal/{journal}', [PrintController::class, 'journal'])->name('journal');
+    Route::get('roster/{roster}', [PrintController::class, 'roster'])->name('roster');
 });
