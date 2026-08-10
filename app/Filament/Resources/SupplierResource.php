@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Domain\Accounting\PartyLedger;
 use App\Filament\Resources\SupplierResource\Pages;
 use App\Models\Supplier;
+use App\Support\CsvActions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -44,9 +45,50 @@ class SupplierResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')->boolean()->sortable(),
             ])
             ->filters([Tables\Filters\TernaryFilter::make('is_active')->label('Active')])
+            ->headerActions([
+                CsvActions::export(Supplier::class, 'suppliers.csv', self::csvColumns()),
+                CsvActions::import([self::class, 'importRow']),
+            ])
             ->actions([Tables\Actions\EditAction::make()])
             ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])])
             ->defaultSort('name');
+    }
+
+    /** @return array<string, string|callable> */
+    public static function csvColumns(): array
+    {
+        return [
+            'Code' => 'code',
+            'Name' => 'name',
+            'Phone' => 'phone',
+            'Email' => 'email',
+            'Address' => 'address',
+            'Active' => fn (Supplier $r): string => $r->is_active ? 'yes' : 'no',
+        ];
+    }
+
+    /** @param array<string, string> $row */
+    public static function importRow(array $row): string
+    {
+        $code = $row['Code'] ?? '';
+        $name = $row['Name'] ?? '';
+        if ($name === '') {
+            return 'skipped';
+        }
+
+        $existing = $code !== '' ? Supplier::query()->where('code', $code)->first() : Supplier::query()->where('name', $name)->first();
+        $supplier = $existing ?? new Supplier;
+        $supplier->fill([
+            'code' => $code !== '' ? $code : ($existing->code ?? null),
+            'name' => $name,
+            'phone' => ($row['Phone'] ?? '') ?: null,
+            'email' => ($row['Email'] ?? '') ?: null,
+            'address' => ($row['Address'] ?? '') ?: null,
+            'is_active' => isset($row['Active']) ? CsvActions::bool($row['Active']) : true,
+        ]);
+        $supplier->save();
+
+        return $existing !== null ? 'updated' : 'created';
     }
 
     public static function getPages(): array

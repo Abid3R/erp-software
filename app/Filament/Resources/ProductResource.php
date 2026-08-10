@@ -4,7 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Product;
+use App\Models\Unit;
 use App\Support\CompanyContext;
+use App\Support\CsvActions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -76,6 +78,10 @@ class ProductResource extends Resource
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')->label('Active'),
             ])
+            ->headerActions([
+                CsvActions::export(Product::class, 'products.csv', self::csvColumns()),
+                CsvActions::import([self::class, 'importRow']),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
@@ -85,6 +91,52 @@ class ProductResource extends Resource
                 ]),
             ])
             ->defaultSort('name');
+    }
+
+    /** @return array<string, string|callable> */
+    public static function csvColumns(): array
+    {
+        return [
+            'SKU' => 'sku',
+            'Name' => 'name',
+            'Unit' => fn (Product $r): string => (string) $r->unit->code,
+            'CostPrice' => 'cost_price',
+            'SellingPrice' => 'selling_price',
+            'ReorderLevel' => 'reorder_level',
+            'Active' => fn (Product $r): string => $r->is_active ? 'yes' : 'no',
+        ];
+    }
+
+    /** @param array<string, string> $row */
+    public static function importRow(array $row): string
+    {
+        $sku = $row['SKU'] ?? '';
+        $name = $row['Name'] ?? '';
+        if ($sku === '' || $name === '') {
+            return 'skipped';
+        }
+
+        $existing = Product::query()->where('sku', $sku)->first();
+        $unit = ($row['Unit'] ?? '') !== '' ? Unit::query()->where('code', $row['Unit'])->first() : null;
+
+        // A new product must resolve a stock unit (NOT NULL); an update may keep its own.
+        if ($existing === null && $unit === null) {
+            return 'skipped';
+        }
+
+        $product = $existing ?? new Product;
+        $product->fill([
+            'sku' => $sku,
+            'name' => $name,
+            'unit_id' => $unit?->getKey() ?? $existing?->unit_id,
+            'cost_price' => ($row['CostPrice'] ?? '') !== '' ? $row['CostPrice'] : ($existing->cost_price ?? 0),
+            'selling_price' => ($row['SellingPrice'] ?? '') !== '' ? $row['SellingPrice'] : ($existing->selling_price ?? 0),
+            'reorder_level' => ($row['ReorderLevel'] ?? '') !== '' ? (int) $row['ReorderLevel'] : ($existing->reorder_level ?? null),
+            'is_active' => isset($row['Active']) ? CsvActions::bool($row['Active']) : true,
+        ]);
+        $product->save();
+
+        return $existing !== null ? 'updated' : 'created';
     }
 
     public static function getPages(): array
