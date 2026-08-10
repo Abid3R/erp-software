@@ -25,6 +25,7 @@ class PrintController extends Controller
         return view('print.payment', [
             'payment' => $payment->load('party', 'company'),
             'company' => $payment->company,
+            'setting' => $payment->company?->reportSettingOrNew(),
         ]);
     }
 
@@ -35,6 +36,7 @@ class PrintController extends Controller
         return view('print.journal', [
             'journal' => $journal->load('lines.account', 'company'),
             'company' => $journal->company,
+            'setting' => $journal->company?->reportSettingOrNew(),
         ]);
     }
 

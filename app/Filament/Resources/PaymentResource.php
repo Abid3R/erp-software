@@ -64,6 +64,7 @@ class PaymentResource extends Resource
                         $pdf = Pdf::loadView('reports.payment-pdf', [
                             'payment' => $record->load('party', 'journal'),
                             'company' => $record->company,
+                            'setting' => $record->company?->reportSettingOrNew(),
                         ]);
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "voucher-{$record->getKey()}.pdf");

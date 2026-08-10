@@ -21,6 +21,7 @@ use App\Models\Customer;
 use App\Models\Journal;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\ReportSetting;
 use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\User;
@@ -110,7 +111,15 @@ class DatabaseSeeder extends Seeder
                 ->pluck('name'),
         );
 
-        Role::findOrCreate('editor');
+        // Editor: read-only across the app plus the report-customisation pages.
+        $editor = Role::findOrCreate('editor');
+        $editor->syncPermissions(
+            Permission::query()
+                ->where('name', 'like', 'page_%')
+                ->orWhere('name', 'like', 'view_%')
+                ->pluck('name'),
+        );
+
         Role::findOrCreate('manager');
         Role::findOrCreate('director');
 
@@ -194,6 +203,18 @@ class DatabaseSeeder extends Seeder
                 app(RecordSale::class)->handle($warehouse, $demoProduct, '15', '420', $today, customer: $customer);
                 app(RecordCustomerReceipt::class)->handle($customer, '3000', PaymentMethod::Cash, $today, 'SEED-RCPT-1');
             }
+
+            // Demo report branding so documents show a letterhead/footer.
+            ReportSetting::updateOrCreate(
+                ['company_id' => app(CompanyContext::class)->currentId()],
+                [
+                    'show_logo' => true,
+                    'header_note' => '123 Demo Road, Dhaka 1207 · +880 1700-000000',
+                    'footer_note' => 'Thank you for your business.',
+                    'signatory_left' => 'Prepared by',
+                    'signatory_right' => 'Authorised signature',
+                ],
+            );
 
             // Approval flow for large supplier payments + a demo pending request,
             // so the Approvals inbox has content for the admin (manager/director).

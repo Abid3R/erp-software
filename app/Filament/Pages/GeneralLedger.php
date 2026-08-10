@@ -88,6 +88,7 @@ class GeneralLedger extends Page implements HasForms
         $pdf = Pdf::loadView('reports.general-ledger-pdf', [
             'account' => $account,
             'company' => $account?->company,
+            'setting' => $account?->company?->reportSettingOrNew(),
             'ledger' => $this->getLedger(),
             'from' => $this->from,
             'to' => $this->to,

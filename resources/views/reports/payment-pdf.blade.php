@@ -35,14 +35,19 @@
         @endif
     </table>
 
+    @php($setting = $setting ?? null)
+    @if ($setting?->terms)
+        <p style="margin-top: 16px; font-size: 11px; color: #555;">{{ $setting->terms }}</p>
+    @endif
+
     <table style="margin-top: 64px; border: none;">
         <tr style="border: none;">
             <td style="border: none; border-top: 1px solid #333; text-align: center; width: 40%;">
-                {{ $isReceipt ? 'Received by' : 'Paid by' }}
+                {{ $setting?->signatory_left ?: ($isReceipt ? 'Received by' : 'Paid by') }}
             </td>
             <td style="border: none; width: 20%;"></td>
             <td style="border: none; border-top: 1px solid #333; text-align: center; width: 40%;">
-                Authorised signature
+                {{ $setting?->signatory_right ?: 'Authorised signature' }}
             </td>
         </tr>
     </table>

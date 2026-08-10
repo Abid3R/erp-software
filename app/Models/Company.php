@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * A company / organization — the tenancy boundary. Not itself company-scoped.
@@ -50,5 +51,18 @@ class Company extends Model
         return $this->belongsToMany(User::class)
             ->withPivot('is_default')
             ->withTimestamps();
+    }
+
+    /** @return HasOne<ReportSetting, $this> */
+    public function reportSetting(): HasOne
+    {
+        return $this->hasOne(ReportSetting::class);
+    }
+
+    /** The company's report settings, or a fresh unsaved default. */
+    public function reportSettingOrNew(): ReportSetting
+    {
+        return $this->reportSetting()->first()
+            ?? new ReportSetting(['company_id' => $this->getKey()]);
     }
 }

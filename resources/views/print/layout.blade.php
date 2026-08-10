@@ -41,21 +41,33 @@
     <div class="toolbar">
         <button class="btn" onclick="window.print()">🖨 Print / Save as PDF</button>
     </div>
+    @php($setting = $setting ?? null)
     <div class="sheet">
         <div class="head">
+            @if ($setting?->logoUrl())
+                <img src="{{ $setting->logoUrl() }}" style="max-height: 64px; margin-bottom: 8px;" alt="logo">
+            @endif
             <div class="company">
                 {{ $company?->name ?? config('app.name') }}
                 @if ($company?->legal_name)
                     <span class="legal">— {{ $company->legal_name }}</span>
                 @endif
             </div>
+            @if ($setting?->header_note)
+                <div class="meta">{{ $setting->header_note }}</div>
+            @endif
             <div class="doc-title">@yield('title')</div>
             <div class="meta">@yield('meta')</div>
         </div>
 
         @yield('content')
 
-        <div class="footer">{{ config('app.name') }} · Printed {{ now()->format('Y-m-d H:i') }}</div>
+        <div class="footer">
+            @if ($setting?->footer_note)
+                {{ $setting->footer_note }}<br>
+            @endif
+            {{ config('app.name') }} · Printed {{ now()->format('Y-m-d H:i') }}
+        </div>
     </div>
 
     @if (request()->boolean('auto'))

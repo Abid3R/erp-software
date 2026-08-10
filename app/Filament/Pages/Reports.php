@@ -87,6 +87,7 @@ class Reports extends Page implements HasForms
         $pdf = Pdf::loadView('reports.pdf', [
             'report' => $report,
             'company' => $company,
+            'setting' => $company?->reportSettingOrNew(),
             'from' => $this->from,
             'to' => $this->to,
             'page' => $this,

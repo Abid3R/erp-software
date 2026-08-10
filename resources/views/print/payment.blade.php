@@ -26,11 +26,16 @@
         @endif
     </table>
 
+    @php($setting = $setting ?? null)
+    @if ($setting?->terms)
+        <p style="margin-top: 16px; font-size: 11px; color: #555;">{{ $setting->terms }}</p>
+    @endif
+
     <table class="sign">
         <tr>
-            <td>{{ $isReceipt ? 'Received by' : 'Paid by' }}</td>
+            <td>{{ $setting?->signatory_left ?: ($isReceipt ? 'Received by' : 'Paid by') }}</td>
             <td class="gap"></td>
-            <td>Authorised signature</td>
+            <td>{{ $setting?->signatory_right ?: 'Authorised signature' }}</td>
         </tr>
     </table>
 @endsection

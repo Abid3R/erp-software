@@ -72,6 +72,7 @@ class JournalResource extends Resource
                         $pdf = Pdf::loadView('reports.journal-pdf', [
                             'journal' => $record->load('lines.account'),
                             'company' => $record->company,
+                            'setting' => $record->company?->reportSettingOrNew(),
                         ]);
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "journal-{$record->getKey()}.pdf");

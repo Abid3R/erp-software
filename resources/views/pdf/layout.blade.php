@@ -19,13 +19,20 @@
     </style>
 </head>
 <body>
+    @php($setting = $setting ?? null)
     <div class="header">
+        @if ($setting?->logoDataUri())
+            <img src="{{ $setting->logoDataUri() }}" style="max-height: 56px; margin-bottom: 6px;" alt="logo">
+        @endif
         <div class="company">
             {{ $company?->name ?? config('app.name') }}
             @if ($company?->legal_name)
                 <span class="legal">— {{ $company->legal_name }}</span>
             @endif
         </div>
+        @if ($setting?->header_note)
+            <div class="meta">{{ $setting->header_note }}</div>
+        @endif
         <div class="title">@yield('title')</div>
         <div class="meta">@yield('period')</div>
     </div>
@@ -33,6 +40,9 @@
     @yield('content')
 
     <div class="footer">
+        @if ($setting?->footer_note)
+            {{ $setting->footer_note }}<br>
+        @endif
         Generated {{ now()->format('Y-m-d H:i') }} · {{ config('app.name') }}
     </div>
 </body>
