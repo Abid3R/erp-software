@@ -5,15 +5,20 @@ A production-grade, modular ERP for small-to-medium businesses, built on a
 software-licensing cost**. Designed to be trusted with real money, inventory,
 employees, customers, and financial records.
 
-> **Status: backend core complete and tested (36 tests green).** Built and
-> working end-to-end: multi-company isolation, products & UOM, the inventory
-> ledger with moving weighted-average costing, the double-entry accounting engine,
-> integrated purchase/sale/return postings, database-enforced ledger immutability,
-> financial statements (P&L / Balance Sheet / General Ledger), and a live
-> financial-KPI dashboard. Remaining: payments/AR-AP, approval workflows, audit
-> log, and more admin screens — see [Roadmap](#roadmap). Nothing here is a fake or
-> placeholder feature — modules are documented before they are built and every
-> commit leaves the test suite green.
+> **Status: broad ERP, complete and tested (99 tests green, 0 static-analysis
+> errors).** Working end-to-end: multi-company isolation, products & UOM, the
+> inventory ledger with moving weighted-average costing, the double-entry
+> accounting engine, purchase/sale/return postings, database-enforced ledger
+> immutability, payments & AR/AP, financial statements + General Ledger, a live
+> KPI dashboard, configurable approval workflows, an immutable audit log, report
+> generation & printing (PDF + Bangla-capable browser print for vouchers/
+> payslips/rosters), **RBAC** (roles & permissions), **per-company report
+> branding**, and a **full HR module** (employees/org, attendance & shifts,
+> rule-based auto-rostering, leave, payroll). Concurrency (no oversell) is proven
+> with real parallel processes, and recoverability with a backup→restore drill.
+> See the [QA sweep](QA.md) for the honest verified/deferred breakdown. Nothing
+> here is a placeholder — modules are documented before they are built and every
+> commit leaves the suite green.
 
 ## Stack (all free / open-source)
 
