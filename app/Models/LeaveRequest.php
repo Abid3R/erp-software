@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ApprovalStatus;
 use App\Models\Concerns\BelongsToCompany;
+use App\Support\Notifier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -42,6 +43,17 @@ class LeaveRequest extends Model
             $start = Carbon::parse($request->start_date);
             $end = Carbon::parse($request->end_date);
             $request->days = max(1, (int) $start->diffInDays($end) + 1);
+        });
+
+        // Alert HR / managers that a request is waiting.
+        static::created(function (LeaveRequest $request): void {
+            Notifier::toCompanyRoles(
+                (int) $request->company_id,
+                ['hr', 'manager'],
+                'Leave request submitted',
+                'A leave request is pending review.',
+                url('/admin/leave-requests'),
+            );
         });
     }
 

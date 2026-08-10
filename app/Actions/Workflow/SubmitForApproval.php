@@ -7,6 +7,7 @@ use App\Exceptions\ApprovalException;
 use App\Models\ApprovalFlow;
 use App\Models\ApprovalRequest;
 use App\Support\CompanyContext;
+use App\Support\Notifier;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Illuminate\Database\Eloquent\Model;
@@ -47,7 +48,7 @@ class SubmitForApproval
             throw ApprovalException::noFlow($subjectType);
         }
 
-        return ApprovalRequest::query()->create([
+        $request = ApprovalRequest::query()->create([
             'company_id' => $companyId,
             'approval_flow_id' => $flow->getKey(),
             'approvable_type' => $approvable->getMorphClass(),
@@ -57,5 +58,15 @@ class SubmitForApproval
             'current_step' => $firstStep->sequence,
             'requested_by' => Auth::id(),
         ]);
+
+        Notifier::toCompanyRoles(
+            $companyId,
+            [$firstStep->role],
+            'Approval needed',
+            class_basename($subjectType).' ('.$amount.') awaits your approval.',
+            url('/admin/approval-requests'),
+        );
+
+        return $request;
     }
 }

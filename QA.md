@@ -60,8 +60,11 @@ scratch database dropped. Recommended cadence: monthly.
 - **Bangla in server-side PDFs**: dompdf renders English + `৳` but not Bengali
   script shaping. Bangla is handled via the browser-print routes; the statement
   PDFs remain English/numeric. (mPDF was rejected for its GPL licence.)
-- **No in-app bell notifications** yet — surfaced instead as navigation badges
-  (pending approvals, low stock, pending leave).
+- **In-app bell notifications** are delivered for pending approvals and leave
+  requests (to the relevant approvers/HR), alongside navigation badges (pending
+  approvals, low stock, pending leave). They are **queued** — a worker
+  (`php artisan queue:work`, per DEPLOYMENT.md) must run to deliver them, or set
+  `QUEUE_CONNECTION=sync` for inline delivery on a single machine.
 - **No master-data import/export** (CSV/Excel) yet.
 - **Leave day-count** is inclusive calendar days (does not yet exclude weekends /
   holidays). **Payroll** does not yet auto-prorate from attendance/absence.

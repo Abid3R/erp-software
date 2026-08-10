@@ -37,6 +37,8 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
             ])
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->plugins([
                 FilamentShieldPlugin::make(),
             ])
