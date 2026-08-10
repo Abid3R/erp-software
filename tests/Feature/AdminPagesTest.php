@@ -18,6 +18,11 @@ dataset('adminPages', [
     'journals' => '/admin/journals',
     'general ledger' => '/admin/general-ledger',
     'payments' => '/admin/payments',
+    'employees' => '/admin/employees',
+    'departments' => '/admin/departments',
+    'designations' => '/admin/designations',
+    'users' => '/admin/users',
+    'report settings' => '/admin/report-settings',
 ]);
 
 it('renders admin page for an authorised user', function (string $path) {

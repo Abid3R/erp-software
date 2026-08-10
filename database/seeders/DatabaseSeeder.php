@@ -18,6 +18,9 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Customer;
+use App\Models\Department;
+use App\Models\Designation;
+use App\Models\Employee;
 use App\Models\Journal;
 use App\Models\Payment;
 use App\Models\Product;
@@ -123,6 +126,16 @@ class DatabaseSeeder extends Seeder
         Role::findOrCreate('manager');
         Role::findOrCreate('director');
 
+        // HR: manages employees, departments, designations.
+        $hr = Role::findOrCreate('hr');
+        $hr->syncPermissions(
+            Permission::query()
+                ->where('name', 'like', '%_employee')
+                ->orWhere('name', 'like', '%_department')
+                ->orWhere('name', 'like', '%_designation')
+                ->pluck('name'),
+        );
+
         // Admin is the super admin and also an approver (manager + director).
         $admin->syncRoles(['super_admin', 'manager', 'director']);
 
@@ -202,6 +215,34 @@ class DatabaseSeeder extends Seeder
                 app(ReceiveGoods::class)->handle($warehouse, $demoProduct, '100', '320', $today);
                 app(RecordSale::class)->handle($warehouse, $demoProduct, '15', '420', $today, customer: $customer);
                 app(RecordCustomerReceipt::class)->handle($customer, '3000', PaymentMethod::Cash, $today, 'SEED-RCPT-1');
+            }
+
+            // Demo HR org: departments, designations, and a small reporting line.
+            if (Employee::query()->doesntExist()) {
+                $eng = Department::create(['name' => 'Engineering', 'code' => 'ENG']);
+                $salesDept = Department::create(['name' => 'Sales', 'code' => 'SALES']);
+                $managerRole = Designation::create(['title' => 'Manager', 'level' => 2]);
+                $engineer = Designation::create(['title' => 'Software Engineer', 'level' => 4]);
+                $salesExec = Designation::create(['title' => 'Sales Executive', 'level' => 4]);
+
+                $boss = Employee::create([
+                    'employee_code' => 'EMP-001', 'first_name' => 'Karim', 'last_name' => 'Rahman',
+                    'department_id' => $eng->getKey(), 'designation_id' => $managerRole->getKey(),
+                    'employment_type' => 'permanent', 'status' => 'active', 'join_date' => '2024-01-15',
+                    'base_salary' => 120000,
+                ]);
+                Employee::create([
+                    'employee_code' => 'EMP-002', 'first_name' => 'Nadia', 'last_name' => 'Islam',
+                    'department_id' => $eng->getKey(), 'designation_id' => $engineer->getKey(),
+                    'manager_id' => $boss->getKey(), 'employment_type' => 'permanent', 'status' => 'active',
+                    'join_date' => '2024-03-01', 'base_salary' => 70000,
+                ]);
+                Employee::create([
+                    'employee_code' => 'EMP-003', 'first_name' => 'Rahim', 'last_name' => 'Uddin',
+                    'department_id' => $salesDept->getKey(), 'designation_id' => $salesExec->getKey(),
+                    'manager_id' => $boss->getKey(), 'employment_type' => 'contract', 'status' => 'active',
+                    'join_date' => '2024-06-01', 'base_salary' => 45000,
+                ]);
             }
 
             // Demo report branding so documents show a letterhead/footer.
