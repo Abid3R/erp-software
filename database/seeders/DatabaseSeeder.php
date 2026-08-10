@@ -24,6 +24,8 @@ use App\Models\Department;
 use App\Models\Designation;
 use App\Models\Employee;
 use App\Models\Journal;
+use App\Models\LeaveRequest;
+use App\Models\LeaveType;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ReportSetting;
@@ -140,6 +142,8 @@ class DatabaseSeeder extends Seeder
                 ->orWhere('name', 'like', '%_shift')
                 ->orWhere('name', 'like', '%_attendance')
                 ->orWhere('name', 'like', '%_roster')
+                ->orWhere('name', 'like', '%_leave_type')
+                ->orWhere('name', 'like', '%_leave_request')
                 ->pluck('name'),
         );
 
@@ -261,6 +265,22 @@ class DatabaseSeeder extends Seeder
                 if ($emp !== null) {
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-03', 'check_in' => '09:12', 'check_out' => '17:45', 'status' => 'late']);
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-04', 'check_in' => '08:58', 'check_out' => '17:05', 'status' => 'present']);
+                }
+            }
+
+            // Leave types + a demo pending leave request (days auto-computed).
+            if (LeaveType::query()->doesntExist()) {
+                $annual = LeaveType::create(['name' => 'Annual Leave', 'code' => 'ANNUAL', 'annual_quota' => 20]);
+                LeaveType::create(['name' => 'Sick Leave', 'code' => 'SICK', 'annual_quota' => 14]);
+                LeaveType::create(['name' => 'Casual Leave', 'code' => 'CASUAL', 'annual_quota' => 10]);
+
+                $leaveEmp = Employee::query()->where('employee_code', 'EMP-002')->first();
+                if ($leaveEmp !== null) {
+                    LeaveRequest::create([
+                        'employee_id' => $leaveEmp->getKey(), 'leave_type_id' => $annual->getKey(),
+                        'start_date' => '2026-09-10', 'end_date' => '2026-09-12',
+                        'reason' => 'Family trip', 'status' => 'pending',
+                    ]);
                 }
             }
 
