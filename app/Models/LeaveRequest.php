@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Domain\Hr\WorkingDays;
 use App\Enums\ApprovalStatus;
 use App\Models\Concerns\BelongsToCompany;
+use App\Support\CompanyContext;
 use App\Support\Notifier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -38,11 +40,14 @@ class LeaveRequest extends Model
 
     public static function booted(): void
     {
-        // Inclusive calendar-day count derived from the (NOT NULL) date range.
+        // Working-day count for the range, excluding weekly off days and holidays.
         static::saving(function (LeaveRequest $request): void {
-            $start = Carbon::parse($request->start_date);
-            $end = Carbon::parse($request->end_date);
-            $request->days = max(1, (int) $start->diffInDays($end) + 1);
+            $companyId = (int) ($request->company_id ?? app(CompanyContext::class)->currentId());
+            $request->days = WorkingDays::between(
+                Carbon::parse($request->start_date)->format('Y-m-d'),
+                Carbon::parse($request->end_date)->format('Y-m-d'),
+                $companyId,
+            );
         });
 
         // Alert HR / managers that a request is waiting.

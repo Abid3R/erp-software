@@ -36,6 +36,15 @@ return [
         'working_days' => (int) env('PAYROLL_WORKING_DAYS', 26),
     ],
 
+    // HR: weekly off days as ISO weekday numbers (Mon=1 .. Sun=7). Bangladesh
+    // commonly rests Friday (5); set HR_WEEKEND_DAYS=5,6 for a Fri+Sat weekend.
+    'hr' => [
+        'weekend_days' => array_values(array_filter(array_map(
+            fn (string $d): int => (int) trim($d),
+            explode(',', (string) env('HR_WEEKEND_DAYS', '5')),
+        ))),
+    ],
+
     // Maps posting roles to chart-of-accounts codes, so standard journal entries
     // reference accounts by role, not hard-coded ids (spec #51, #54). These codes
     // match the default COA seeded in DatabaseSeeder; a company may remap them.

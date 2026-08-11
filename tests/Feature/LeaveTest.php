@@ -11,7 +11,12 @@ use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Support\CompanyContext;
 
-beforeEach(fn () => app(CompanyContext::class)->forget());
+beforeEach(function () {
+    app(CompanyContext::class)->forget();
+    // Isolate these tests from the default weekend so day counts equal calendar
+    // days; weekend/holiday exclusion is covered by WorkingDaysTest.
+    config()->set('erp.hr.weekend_days', []);
+});
 afterEach(fn () => app(CompanyContext::class)->forget());
 
 function leaveSetup(): array
@@ -27,7 +32,7 @@ function leaveSetup(): array
     return [$company, $type, $employee];
 }
 
-it('computes leave days inclusively on save', function () {
+it('computes leave days across the range', function () {
     [, $type, $employee] = leaveSetup();
 
     $request = LeaveRequest::create([

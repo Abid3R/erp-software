@@ -24,6 +24,7 @@ use App\Models\Customer;
 use App\Models\Department;
 use App\Models\Designation;
 use App\Models\Employee;
+use App\Models\Holiday;
 use App\Models\Journal;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
@@ -147,6 +148,7 @@ class DatabaseSeeder extends Seeder
                 ->orWhere('name', 'like', '%_leave_type')
                 ->orWhere('name', 'like', '%_leave_request')
                 ->orWhere('name', 'like', '%_payroll_run')
+                ->orWhere('name', 'like', '%_holiday')
                 ->pluck('name'),
         );
 
@@ -269,6 +271,12 @@ class DatabaseSeeder extends Seeder
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-03', 'check_in' => '09:12', 'check_out' => '17:45', 'status' => 'late']);
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-04', 'check_in' => '08:58', 'check_out' => '17:05', 'status' => 'present']);
                 }
+            }
+
+            // Public holidays (excluded from leave working-day counts).
+            if (Holiday::query()->doesntExist()) {
+                Holiday::create(['name' => 'Independence Day', 'date' => '2026-03-26']);
+                Holiday::create(['name' => 'Victory Day', 'date' => '2026-12-16']);
             }
 
             // Leave types + a demo pending leave request (days auto-computed).
