@@ -6,6 +6,7 @@ use App\Domain\Hr\RosterGenerator;
 use App\Models\Journal;
 use App\Models\Payment;
 use App\Models\Payslip;
+use App\Models\PurchaseOrder;
 use App\Models\Roster;
 use App\Support\CompanyContext;
 use Illuminate\Contracts\View\View;
@@ -81,6 +82,17 @@ class PrintController extends Controller
             'payslip' => $payslip->load(['employee.department', 'employee.designation', 'run', 'company']),
             'company' => $payslip->company,
             'setting' => $payslip->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function purchaseOrder(PurchaseOrder $purchaseOrder): View
+    {
+        $this->authorizeCompany((int) $purchaseOrder->company_id);
+
+        return view('print.purchase-order', [
+            'po' => $purchaseOrder->load('lines.product', 'supplier', 'warehouse', 'company'),
+            'company' => $purchaseOrder->company,
+            'setting' => $purchaseOrder->company?->reportSettingOrNew(),
         ]);
     }
 

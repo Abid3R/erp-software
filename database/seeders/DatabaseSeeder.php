@@ -33,6 +33,7 @@ use App\Models\LeaveType;
 use App\Models\Payment;
 use App\Models\PayrollRun;
 use App\Models\Product;
+use App\Models\PurchaseOrder;
 use App\Models\ReportSetting;
 use App\Models\Roster;
 use App\Models\Shift;
@@ -272,6 +273,21 @@ class DatabaseSeeder extends Seeder
                 if ($emp !== null) {
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-03', 'check_in' => '09:12', 'check_out' => '17:45', 'status' => 'late']);
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-04', 'check_in' => '08:58', 'check_out' => '17:05', 'status' => 'present']);
+                }
+            }
+
+            // Demo approved Purchase Order (open for receiving).
+            if (PurchaseOrder::query()->doesntExist()) {
+                $supplier = Supplier::query()->where('code', 'SUP-001')->first();
+                $poWarehouse = Warehouse::query()->where('code', 'MAIN')->first();
+                $poProduct = Product::query()->where('sku', 'PAP-A4')->first();
+                if ($supplier !== null && $poWarehouse !== null && $poProduct !== null) {
+                    $po = PurchaseOrder::create([
+                        'po_number' => 'PO-0001', 'supplier_id' => $supplier->getKey(),
+                        'warehouse_id' => $poWarehouse->getKey(), 'order_date' => date('Y-m-d'),
+                        'status' => 'approved',
+                    ]);
+                    $po->lines()->create(['product_id' => $poProduct->getKey(), 'quantity_ordered' => 50, 'unit_price' => 320]);
                 }
             }
 
