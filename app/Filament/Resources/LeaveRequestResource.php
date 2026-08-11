@@ -81,8 +81,8 @@ class LeaveRequestResource extends Resource
                         ? LeaveBalance::remaining($r->employee, $r->leaveType, (int) $r->start_date->format('Y')).' d'
                         : '—'),
                 Tables\Columns\TextColumn::make('status')->badge()
-                    ->formatStateUsing(fn (ApprovalStatus $s): string => $s->label())
-                    ->color(fn (ApprovalStatus $s): string => match ($s) {
+                    ->formatStateUsing(fn (ApprovalStatus $state): string => $state->label())
+                    ->color(fn (ApprovalStatus $state): string => match ($state) {
                         ApprovalStatus::Approved => 'success',
                         ApprovalStatus::Rejected => 'danger',
                         ApprovalStatus::Cancelled => 'gray',

@@ -54,8 +54,8 @@ class PayrollRunResource extends Resource
                 Tables\Columns\TextColumn::make('period')->state(fn (PayrollRun $r): string => $r->periodLabel()),
                 Tables\Columns\TextColumn::make('payslips_count')->counts('payslips')->label('Payslips'),
                 Tables\Columns\TextColumn::make('status')->badge()
-                    ->formatStateUsing(fn (PayrollStatus $s): string => $s->label())
-                    ->color(fn (PayrollStatus $s): string => $s->color()),
+                    ->formatStateUsing(fn (PayrollStatus $state): string => $state->label())
+                    ->color(fn (PayrollStatus $state): string => $state->color()),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

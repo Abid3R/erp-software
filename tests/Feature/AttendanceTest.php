@@ -37,6 +37,26 @@ it('returns zeros when a check time is missing', function () {
         ->toBe(['worked' => 0, 'late' => 0, 'overtime' => 0]);
 });
 
+it('renders the attendance list (enum status column) with data', function () {
+    // Regression: empty-table page tests never invoke the badge format/color
+    // closures; a real row exercises the enum-typed closure (must inject $state).
+    $company = Company::factory()->create();
+    app(CompanyContext::class)->set($company);
+    $shift = Shift::create(['name' => 'Morning', 'code' => 'M', 'start_time' => '09:00', 'end_time' => '17:00', 'break_minutes' => 60]);
+    $employee = Employee::create([
+        'employee_code' => 'E1', 'first_name' => 'Sara',
+        'employment_type' => 'permanent', 'status' => 'active', 'join_date' => '2025-01-01',
+    ]);
+    Attendance::create([
+        'employee_id' => $employee->getKey(), 'shift_id' => $shift->getKey(),
+        'date' => '2026-08-03', 'check_in' => '09:12', 'check_out' => '17:45', 'status' => 'late',
+    ]);
+
+    $this->actingAs(superAdminFor($company))->get('/admin/attendances')
+        ->assertOk()
+        ->assertSee('Late');
+});
+
 it('stores derived metrics on the attendance row when saved', function () {
     $company = Company::factory()->create();
     app(CompanyContext::class)->set($company);

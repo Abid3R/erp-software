@@ -57,8 +57,8 @@ class RosterResource extends Resource
                 Tables\Columns\TextColumn::make('end_date')->date(),
                 Tables\Columns\TextColumn::make('entries_count')->counts('entries')->label('Entries'),
                 Tables\Columns\TextColumn::make('status')->badge()
-                    ->formatStateUsing(fn (RosterStatus $s): string => $s->label())
-                    ->color(fn (RosterStatus $s): string => $s->color()),
+                    ->formatStateUsing(fn (RosterStatus $state): string => $state->label())
+                    ->color(fn (RosterStatus $state): string => $state->color()),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

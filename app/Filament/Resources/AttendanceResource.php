@@ -55,8 +55,8 @@ class AttendanceResource extends Resource
                 Tables\Columns\TextColumn::make('check_in')->time('H:i')->placeholder('—'),
                 Tables\Columns\TextColumn::make('check_out')->time('H:i')->placeholder('—'),
                 Tables\Columns\TextColumn::make('status')->badge()
-                    ->formatStateUsing(fn (AttendanceStatus $s): string => $s->label())
-                    ->color(fn (AttendanceStatus $s): string => $s->color()),
+                    ->formatStateUsing(fn (AttendanceStatus $state): string => $state->label())
+                    ->color(fn (AttendanceStatus $state): string => $state->color()),
                 Tables\Columns\TextColumn::make('worked_minutes')->label('Worked')
                     ->formatStateUsing(fn (int $state): string => self::hoursMinutes($state)),
                 Tables\Columns\TextColumn::make('late_minutes')->label('Late')->suffix(' m')->toggleable(),

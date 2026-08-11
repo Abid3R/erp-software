@@ -69,8 +69,8 @@ class ManufacturingOrderResource extends Resource
                 Tables\Columns\TextColumn::make('quantity'),
                 Tables\Columns\TextColumn::make('warehouse.code')->label('Warehouse'),
                 Tables\Columns\TextColumn::make('status')->badge()
-                    ->formatStateUsing(fn (ManufacturingOrderStatus $s): string => $s->label())
-                    ->color(fn (ManufacturingOrderStatus $s): string => $s->color()),
+                    ->formatStateUsing(fn (ManufacturingOrderStatus $state): string => $state->label())
+                    ->color(fn (ManufacturingOrderStatus $state): string => $state->color()),
                 Tables\Columns\TextColumn::make('total_cost')->money(config('erp.currency.code'))->placeholder('—'),
             ])
             ->filters([
