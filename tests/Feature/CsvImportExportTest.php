@@ -12,15 +12,6 @@ use App\Support\CsvActions;
 beforeEach(fn () => app(CompanyContext::class)->forget());
 afterEach(fn () => app(CompanyContext::class)->forget());
 
-/** @param list<string> $lines */
-function writeCsv(array $lines): string
-{
-    $path = tempnam(sys_get_temp_dir(), 'csv').'.csv';
-    file_put_contents($path, implode("\n", $lines)."\n");
-
-    return $path;
-}
-
 it('imports customers — creating, updating by code, and skipping bad rows', function () {
     $company = Company::factory()->create();
     app(CompanyContext::class)->set($company);

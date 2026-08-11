@@ -6,9 +6,13 @@ use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Enums\Gender;
 use App\Filament\Resources\EmployeeResource\Pages;
+use App\Models\Department;
+use App\Models\Designation;
 use App\Models\Employee;
 use App\Support\CompanyContext;
+use App\Support\CsvActions;
 use Filament\Forms;
+use Illuminate\Support\Carbon;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -84,8 +88,81 @@ class EmployeeResource extends Resource
                 Tables\Filters\SelectFilter::make('status')->options(EmployeeStatus::options()),
                 Tables\Filters\SelectFilter::make('department')->relationship('department', 'name'),
             ])
+            ->headerActions([
+                CsvActions::export(Employee::class, 'employees.csv', self::csvColumns()),
+                CsvActions::import([self::class, 'importRow']),
+            ])
             ->actions([Tables\Actions\EditAction::make()])
             ->defaultSort('employee_code');
+    }
+
+    /** @return array<string, string|callable> */
+    public static function csvColumns(): array
+    {
+        return [
+            'Code' => 'employee_code',
+            'FirstName' => 'first_name',
+            'LastName' => 'last_name',
+            'Email' => 'email',
+            'Phone' => 'phone',
+            'Department' => fn (Employee $r): string => (string) data_get($r, 'department.name', ''),
+            'Designation' => fn (Employee $r): string => (string) data_get($r, 'designation.title', ''),
+            'EmploymentType' => fn (Employee $r): string => $r->employment_type->value,
+            'Status' => fn (Employee $r): string => $r->status->value,
+            'JoinDate' => fn (Employee $r): string => Carbon::parse($r->join_date)->format('Y-m-d'),
+            'BaseSalary' => 'base_salary',
+        ];
+    }
+
+    /** @param array<string, string> $row */
+    public static function importRow(array $row): string
+    {
+        $code = $row['Code'] ?? '';
+        $first = $row['FirstName'] ?? '';
+        if ($code === '' || $first === '') {
+            return 'skipped';
+        }
+
+        $existing = Employee::query()->where('employee_code', $code)->first();
+
+        $joinDate = $existing !== null ? Carbon::parse($existing->join_date)->format('Y-m-d') : null;
+        if (($row['JoinDate'] ?? '') !== '') {
+            try {
+                $joinDate = Carbon::parse($row['JoinDate'])->format('Y-m-d');
+            } catch (\Throwable) {
+                // keep the previous value
+            }
+        }
+        if ($joinDate === null) {
+            return 'skipped'; // a new employee needs a join date (NOT NULL)
+        }
+
+        $dept = ($row['Department'] ?? '') !== '' ? Department::query()->where('name', $row['Department'])->first() : null;
+        $desig = ($row['Designation'] ?? '') !== '' ? Designation::query()->where('title', $row['Designation'])->first() : null;
+
+        $employee = $existing ?? new Employee;
+        $employee->fill([
+            'employee_code' => $code,
+            'first_name' => $first,
+            'last_name' => ($row['LastName'] ?? '') ?: null,
+            'email' => ($row['Email'] ?? '') ?: null,
+            'phone' => ($row['Phone'] ?? '') ?: null,
+            'department_id' => $dept?->getKey() ?? $existing?->department_id,
+            'designation_id' => $desig?->getKey() ?? $existing?->designation_id,
+            'employment_type' => (EmploymentType::tryFrom(self::normalizeEnum($row['EmploymentType'] ?? '')) ?? EmploymentType::Permanent)->value,
+            'status' => (EmployeeStatus::tryFrom(self::normalizeEnum($row['Status'] ?? '')) ?? EmployeeStatus::Active)->value,
+            'join_date' => $joinDate,
+            'base_salary' => ($row['BaseSalary'] ?? '') !== '' ? $row['BaseSalary'] : ($existing->base_salary ?? 0),
+        ]);
+        $employee->save();
+
+        return $existing !== null ? 'updated' : 'created';
+    }
+
+    /** Normalise "Part-time" / "On leave" to enum backing values. */
+    private static function normalizeEnum(string $value): string
+    {
+        return str_replace([' ', '-'], '_', strtolower(trim($value)));
     }
 
     public static function getPages(): array

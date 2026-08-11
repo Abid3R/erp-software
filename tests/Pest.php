@@ -62,6 +62,15 @@ function superAdminFor(App\Models\Company $company): App\Models\User
     return $user;
 }
 
+/** Write CSV lines to a temp file and return its path (caller unlinks). */
+function writeCsv(array $lines): string
+{
+    $path = tempnam(sys_get_temp_dir(), 'csv').'.csv';
+    file_put_contents($path, implode("\n", $lines)."\n");
+
+    return $path;
+}
+
 /** A company member with the given roles (created if missing) and no others. */
 function memberWithRoles(App\Models\Company $company, string ...$roles): App\Models\User
 {
