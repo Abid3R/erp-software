@@ -69,8 +69,8 @@ scratch database dropped. Recommended cadence: monthly.
   suppliers, and employees (Export/Import buttons on those screens). Excel/xlsx
   (vs CSV) is not yet covered.
 - **Payroll** auto-deducts unpaid absences pro-rata (per-day = basic ÷ configured
-  working days). **Leave day-count** is still inclusive calendar days (does not yet
-  exclude weekends / holidays), and there is no holiday calendar.
+  working days). **Leave** counts working days, excluding the weekly off day(s)
+  (`erp.hr.weekend_days`, default Friday) and the company's holiday calendar.
 - Docker deploy path is documented but the native (Scoop) path is the one in
   active use; `docker compose` is not exercised in CI.
 
