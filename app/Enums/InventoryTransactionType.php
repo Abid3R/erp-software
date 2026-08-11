@@ -19,13 +19,15 @@ enum InventoryTransactionType: string
     case TransferIn = 'transfer_in';
     case TransferOut = 'transfer_out';
     case Damage = 'damage';
+    case ManufactureIssue = 'manufacture_issue';     // raw materials consumed by production
+    case ManufactureReceipt = 'manufacture_receipt'; // finished goods produced
 
     /** True if this movement increases on-hand quantity. */
     public function isInbound(): bool
     {
         return match ($this) {
             self::Opening, self::PurchaseReceipt, self::SalesReturn,
-            self::AdjustmentIn, self::TransferIn => true,
+            self::AdjustmentIn, self::TransferIn, self::ManufactureReceipt => true,
             default => false,
         };
     }

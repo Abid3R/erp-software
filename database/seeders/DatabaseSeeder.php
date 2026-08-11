@@ -16,6 +16,7 @@ use App\Models\Account;
 use App\Models\AccountingPeriod;
 use App\Models\ApprovalFlow;
 use App\Models\Attendance;
+use App\Models\BillOfMaterials;
 use App\Models\ApprovalRequest;
 use App\Models\Brand;
 use App\Models\Category;
@@ -27,6 +28,7 @@ use App\Models\Employee;
 use App\Models\Holiday;
 use App\Models\Journal;
 use App\Models\LeaveRequest;
+use App\Models\ManufacturingOrder;
 use App\Models\LeaveType;
 use App\Models\Payment;
 use App\Models\PayrollRun;
@@ -270,6 +272,22 @@ class DatabaseSeeder extends Seeder
                 if ($emp !== null) {
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-03', 'check_in' => '09:12', 'check_out' => '17:45', 'status' => 'late']);
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-04', 'check_in' => '08:58', 'check_out' => '17:05', 'status' => 'present']);
+                }
+            }
+
+            // Demo Bill of Materials + a planned manufacturing order.
+            if (BillOfMaterials::query()->doesntExist()) {
+                $finished = Product::query()->where('sku', 'STP-01')->first();
+                $component = Product::query()->where('sku', 'PEN-BP')->first();
+                $mainWarehouse = Warehouse::query()->where('code', 'MAIN')->first();
+                if ($finished !== null && $component !== null && $mainWarehouse !== null) {
+                    $bom = BillOfMaterials::create(['product_id' => $finished->getKey(), 'name' => 'Default', 'output_quantity' => 1]);
+                    $bom->components()->create(['component_product_id' => $component->getKey(), 'quantity' => 2]);
+                    ManufacturingOrder::create([
+                        'reference' => 'MO-0001', 'bill_of_materials_id' => $bom->getKey(),
+                        'product_id' => $finished->getKey(), 'warehouse_id' => $mainWarehouse->getKey(),
+                        'quantity' => 3, 'status' => 'planned',
+                    ]);
                 }
             }
 

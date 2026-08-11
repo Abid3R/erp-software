@@ -28,6 +28,8 @@ dataset('adminPages', [
     'leave requests' => '/admin/leave-requests',
     'payroll' => '/admin/payroll-runs',
     'holidays' => '/admin/holidays',
+    'bills of materials' => '/admin/boms',
+    'manufacturing orders' => '/admin/manufacturing-orders',
     'users' => '/admin/users',
     'report settings' => '/admin/report-settings',
 ]);
