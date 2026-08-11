@@ -18,8 +18,8 @@ class Payslip extends Model
 
     /** @var list<string> */
     protected $fillable = [
-        'company_id', 'payroll_run_id', 'employee_id', 'basic',
-        'allowances', 'deductions', 'gross', 'net',
+        'company_id', 'payroll_run_id', 'employee_id', 'basic', 'worked_days',
+        'absent_days', 'allowances', 'deductions', 'gross', 'net',
     ];
 
     /** @return array<string, string> */
@@ -31,6 +31,8 @@ class Payslip extends Model
             'basic' => 'decimal:2',
             'gross' => 'decimal:2',
             'net' => 'decimal:2',
+            'worked_days' => 'integer',
+            'absent_days' => 'integer',
         ];
     }
 

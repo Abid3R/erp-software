@@ -18,6 +18,7 @@
         <tr><td>Department</td><td>{{ $emp?->department?->name ?? '—' }}</td></tr>
         <tr><td>Designation</td><td>{{ $emp?->designation?->title ?? '—' }}</td></tr>
         <tr><td>Pay period</td><td>{{ $payslip->run->periodLabel() }}</td></tr>
+        <tr><td>Attendance</td><td>{{ $payslip->worked_days }} days worked · {{ $payslip->absent_days }} absent</td></tr>
     </table>
 
     <h3>Earnings</h3>

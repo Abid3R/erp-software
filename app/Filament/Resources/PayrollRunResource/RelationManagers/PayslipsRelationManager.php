@@ -38,6 +38,8 @@ class PayslipsRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('employee')->label('Employee')
                     ->state(fn (Payslip $record): string => $record->employee?->fullName() ?? '—'),
+                Tables\Columns\TextColumn::make('worked_days')->label('Worked')->toggleable(),
+                Tables\Columns\TextColumn::make('absent_days')->label('Absent')->toggleable(),
                 Tables\Columns\TextColumn::make('basic')->money(config('erp.currency.code')),
                 Tables\Columns\TextColumn::make('allowanceTotal')->label('Allowances')
                     ->state(fn (Payslip $record): string => $record->allowanceTotal())->money(config('erp.currency.code')),

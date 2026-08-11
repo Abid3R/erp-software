@@ -2,10 +2,13 @@
 
 namespace App\Actions\Hr;
 
+use App\Domain\Hr\AttendanceSummary;
 use App\Enums\EmployeeStatus;
 use App\Enums\PayrollStatus;
 use App\Models\Employee;
 use App\Models\PayrollRun;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -31,13 +34,29 @@ class GeneratePayroll
                 'created_by' => Auth::id(),
             ]);
 
+            $workingDays = max(1, (int) config('erp.payroll.working_days', 26));
+
             foreach ($employees as $employee) {
+                $summary = AttendanceSummary::forMonth($employee, $year, $month);
+
+                // Unpaid absences reduce pay pro-rata (per-day = basic / working days).
+                $deductions = [];
+                if ($summary['absent'] > 0) {
+                    $amount = BigDecimal::of((string) $employee->base_salary)
+                        ->dividedBy($workingDays, 2, RoundingMode::HALF_UP)
+                        ->multipliedBy($summary['absent'])
+                        ->toScale(2, RoundingMode::HALF_UP);
+                    $deductions[] = ['label' => 'Absence ('.$summary['absent'].' d)', 'amount' => (string) $amount];
+                }
+
                 $run->payslips()->create([
                     'company_id' => $run->company_id,
                     'employee_id' => $employee->getKey(),
                     'basic' => $employee->base_salary,
+                    'worked_days' => $summary['worked'],
+                    'absent_days' => $summary['absent'],
                     'allowances' => [],
-                    'deductions' => [],
+                    'deductions' => $deductions,
                 ]);
             }
 

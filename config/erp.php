@@ -30,6 +30,12 @@ return [
         'password' => env('ADMIN_PASSWORD', 'password'),
     ],
 
+    // Payroll: nominal paid working days per month, used to derive the per-day
+    // rate for absence deductions (26 is the common BD convention).
+    'payroll' => [
+        'working_days' => (int) env('PAYROLL_WORKING_DAYS', 26),
+    ],
+
     // Maps posting roles to chart-of-accounts codes, so standard journal entries
     // reference accounts by role, not hard-coded ids (spec #51, #54). These codes
     // match the default COA seeded in DatabaseSeeder; a company may remap them.
