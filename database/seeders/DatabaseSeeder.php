@@ -36,6 +36,7 @@ use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\ReportSetting;
 use App\Models\Roster;
+use App\Models\SalesOrder;
 use App\Models\Shift;
 use App\Models\Supplier;
 use App\Models\Unit;
@@ -273,6 +274,21 @@ class DatabaseSeeder extends Seeder
                 if ($emp !== null) {
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-03', 'check_in' => '09:12', 'check_out' => '17:45', 'status' => 'late']);
                     Attendance::create(['employee_id' => $emp->getKey(), 'shift_id' => $morning->getKey(), 'date' => '2026-08-04', 'check_in' => '08:58', 'check_out' => '17:05', 'status' => 'present']);
+                }
+            }
+
+            // Demo confirmed Sales Order (open for delivery).
+            if (SalesOrder::query()->doesntExist()) {
+                $soCustomer = Customer::query()->where('code', 'CUST-001')->first();
+                $soWarehouse = Warehouse::query()->where('code', 'MAIN')->first();
+                $soProduct = Product::query()->where('sku', 'PAP-A4')->first();
+                if ($soCustomer !== null && $soWarehouse !== null && $soProduct !== null) {
+                    $so = SalesOrder::create([
+                        'so_number' => 'SO-0001', 'customer_id' => $soCustomer->getKey(),
+                        'warehouse_id' => $soWarehouse->getKey(), 'order_date' => date('Y-m-d'),
+                        'status' => 'confirmed',
+                    ]);
+                    $so->lines()->create(['product_id' => $soProduct->getKey(), 'quantity_ordered' => 20, 'unit_price' => 420]);
                 }
             }
 

@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Payslip;
 use App\Models\PurchaseOrder;
 use App\Models\Roster;
+use App\Models\SalesOrder;
 use App\Support\CompanyContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -93,6 +94,17 @@ class PrintController extends Controller
             'po' => $purchaseOrder->load('lines.product', 'supplier', 'warehouse', 'company'),
             'company' => $purchaseOrder->company,
             'setting' => $purchaseOrder->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function salesOrder(SalesOrder $salesOrder): View
+    {
+        $this->authorizeCompany((int) $salesOrder->company_id);
+
+        return view('print.sales-order', [
+            'so' => $salesOrder->load('lines.product', 'customer', 'warehouse', 'company'),
+            'company' => $salesOrder->company,
+            'setting' => $salesOrder->company?->reportSettingOrNew(),
         ]);
     }
 

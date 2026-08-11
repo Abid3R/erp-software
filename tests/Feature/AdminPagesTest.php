@@ -31,6 +31,7 @@ dataset('adminPages', [
     'bills of materials' => '/admin/boms',
     'manufacturing orders' => '/admin/manufacturing-orders',
     'purchase orders' => '/admin/purchase-orders',
+    'sales orders' => '/admin/sales-orders',
     'users' => '/admin/users',
     'report settings' => '/admin/report-settings',
 ]);
