@@ -65,9 +65,9 @@ scratch database dropped. Recommended cadence: monthly.
   approvals, low stock, pending leave). They are **queued** — a worker
   (`php artisan queue:work`, per DEPLOYMENT.md) must run to deliver them, or set
   `QUEUE_CONNECTION=sync` for inline delivery on a single machine.
-- **Master-data CSV import/export** is available for products, customers, and
-  suppliers (Export/Import buttons on those screens). Employees, and Excel/xlsx
-  (vs CSV), are not yet covered.
+- **Master-data CSV import/export** is available for products, customers,
+  suppliers, and employees (Export/Import buttons on those screens). Excel/xlsx
+  (vs CSV) is not yet covered.
 - **Leave day-count** is inclusive calendar days (does not yet exclude weekends /
   holidays). **Payroll** does not yet auto-prorate from attendance/absence.
 - Docker deploy path is documented but the native (Scoop) path is the one in
