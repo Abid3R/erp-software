@@ -68,8 +68,9 @@ scratch database dropped. Recommended cadence: monthly.
 - **Master-data CSV import/export** is available for products, customers,
   suppliers, and employees (Export/Import buttons on those screens). Excel/xlsx
   (vs CSV) is not yet covered.
-- **Leave day-count** is inclusive calendar days (does not yet exclude weekends /
-  holidays). **Payroll** does not yet auto-prorate from attendance/absence.
+- **Payroll** auto-deducts unpaid absences pro-rata (per-day = basic ÷ configured
+  working days). **Leave day-count** is still inclusive calendar days (does not yet
+  exclude weekends / holidays), and there is no holiday calendar.
 - Docker deploy path is documented but the native (Scoop) path is the one in
   active use; `docker compose` is not exercised in CI.
 
