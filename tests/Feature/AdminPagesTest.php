@@ -32,6 +32,7 @@ dataset('adminPages', [
     'manufacturing orders' => '/admin/manufacturing-orders',
     'purchase orders' => '/admin/purchase-orders',
     'sales orders' => '/admin/sales-orders',
+    'mrp' => '/admin/mrp',
     'users' => '/admin/users',
     'report settings' => '/admin/report-settings',
 ]);
