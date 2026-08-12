@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Hr\RosterGenerator;
+use App\Domain\Reporting\PartyStatement;
+use App\Models\Customer;
 use App\Models\Expense;
 use App\Models\Journal;
 use App\Models\Payment;
@@ -13,6 +15,7 @@ use App\Models\Roster;
 use App\Models\SalesOrder;
 use App\Models\StockAdjustment;
 use App\Models\StockTransfer;
+use App\Models\Supplier;
 use App\Models\SupplierInvoice;
 use App\Support\CompanyContext;
 use Illuminate\Contracts\View\View;
@@ -165,6 +168,32 @@ class PrintController extends Controller
             'transfer' => $stockTransfer->load('lines.product', 'fromWarehouse', 'toWarehouse', 'company'),
             'company' => $stockTransfer->company,
             'setting' => $stockTransfer->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function customerStatement(Customer $customer): View
+    {
+        $this->authorizeCompany((int) $customer->company_id);
+
+        return view('print.party-statement', [
+            'party' => $customer,
+            'kind' => 'Customer',
+            'statement' => PartyStatement::forCustomer($customer),
+            'company' => $customer->company,
+            'setting' => $customer->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function supplierStatement(Supplier $supplier): View
+    {
+        $this->authorizeCompany((int) $supplier->company_id);
+
+        return view('print.party-statement', [
+            'party' => $supplier,
+            'kind' => 'Supplier',
+            'statement' => PartyStatement::forSupplier($supplier),
+            'company' => $supplier->company,
+            'setting' => $supplier->company?->reportSettingOrNew(),
         ]);
     }
 

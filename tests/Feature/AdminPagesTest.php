@@ -24,6 +24,8 @@ dataset('adminPages', [
     'stock transfers' => '/admin/stock-transfers',
     'journals' => '/admin/journals',
     'general ledger' => '/admin/general-ledger',
+    'ar aging' => '/admin/receivables-aging',
+    'ap aging' => '/admin/payables-aging',
     'payments' => '/admin/payments',
     'employees' => '/admin/employees',
     'departments' => '/admin/departments',
