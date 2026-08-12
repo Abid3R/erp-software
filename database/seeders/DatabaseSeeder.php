@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Actions\Hr\GeneratePayroll;
 use App\Actions\Hr\GenerateRoster;
+use App\Actions\Purchasing\CreateRfqFromRequisition;
 use App\Actions\Payments\RecordCustomerReceipt;
 use App\Actions\Purchasing\ReceiveGoods;
 use App\Actions\Sales\RecordSale;
@@ -34,7 +35,9 @@ use App\Models\Payment;
 use App\Models\PayrollRun;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseRequisition;
 use App\Models\ReportSetting;
+use App\Models\RfqQuote;
 use App\Models\Roster;
 use App\Models\SalesOrder;
 use App\Models\Shift;
@@ -289,6 +292,26 @@ class DatabaseSeeder extends Seeder
                         'status' => 'confirmed',
                     ]);
                     $so->lines()->create(['product_id' => $soProduct->getKey(), 'quantity_ordered' => 20, 'unit_price' => 420]);
+                }
+            }
+
+            // Demo sourcing chain: an approved requisition -> RFQ with two supplier
+            // quotes (ready for comparative statement + award).
+            if (PurchaseRequisition::query()->doesntExist()) {
+                $reqProduct = Product::query()->where('sku', 'PAP-A4')->first();
+                $reqWarehouse = Warehouse::query()->where('code', 'MAIN')->first();
+                $sup1 = Supplier::query()->where('code', 'SUP-001')->first();
+                $sup2 = Supplier::updateOrCreate(['code' => 'SUP-002'], ['name' => 'Beta Supplies Ltd.', 'is_active' => true]);
+                if ($reqProduct !== null && $reqWarehouse !== null && $sup1 !== null) {
+                    $req = PurchaseRequisition::create(['number' => 'REQ-0001', 'needed_by' => date('Y-m-d', strtotime('+7 days')), 'status' => 'approved']);
+                    $req->lines()->create(['product_id' => $reqProduct->getKey(), 'quantity' => 100]);
+
+                    $rfq = app(CreateRfqFromRequisition::class)->handle($req, (int) $reqWarehouse->getKey());
+                    $rfqLine = $rfq->lines()->first();
+                    if ($rfqLine !== null) {
+                        RfqQuote::create(['rfq_id' => $rfq->getKey(), 'rfq_line_id' => $rfqLine->getKey(), 'supplier_id' => $sup1->getKey(), 'unit_price' => 320]);
+                        RfqQuote::create(['rfq_id' => $rfq->getKey(), 'rfq_line_id' => $rfqLine->getKey(), 'supplier_id' => $sup2->getKey(), 'unit_price' => 310]);
+                    }
                 }
             }
 

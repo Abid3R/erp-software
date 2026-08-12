@@ -30,6 +30,8 @@ dataset('adminPages', [
     'holidays' => '/admin/holidays',
     'bills of materials' => '/admin/boms',
     'manufacturing orders' => '/admin/manufacturing-orders',
+    'requisitions' => '/admin/purchase-requisitions',
+    'rfqs' => '/admin/rfqs',
     'purchase orders' => '/admin/purchase-orders',
     'sales orders' => '/admin/sales-orders',
     'mrp' => '/admin/mrp',
