@@ -54,6 +54,7 @@ use App\Models\Shift;
 use App\Models\StockAdjustment;
 use App\Models\StockTransfer;
 use App\Models\Supplier;
+use App\Models\TaxRate;
 use App\Models\Unit;
 use App\Models\User;
 use App\Models\Warehouse;
@@ -238,6 +239,20 @@ class DatabaseSeeder extends Seeder
                 Account::updateOrCreate(
                     ['code' => $code],
                     ['name' => $accountName, 'type' => $type, 'is_postable' => true, 'is_active' => true],
+                );
+            }
+
+            // Bangladesh VAT rates (configurable — edit or supersede, never hard-coded).
+            foreach ([
+                ['VAT15', 'Standard VAT 15%', '15.0000'],
+                ['VAT7_5', 'Reduced VAT 7.5%', '7.5000'],
+                ['VAT5', 'Reduced VAT 5%', '5.0000'],
+                ['EXEMPT', 'VAT Exempt', '0.0000'],
+            ] as [$code, $taxName, $rate]) {
+                TaxRate::updateOrCreate(
+                    ['code' => $code],
+                    ['name' => $taxName, 'rate_percent' => $rate, 'is_inclusive' => false,
+                        'effective_from' => '2020-01-01', 'is_active' => true],
                 );
             }
 

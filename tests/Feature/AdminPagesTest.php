@@ -47,6 +47,7 @@ dataset('adminPages', [
     'sales returns' => '/admin/sales-returns',
     'mrp' => '/admin/mrp',
     'users' => '/admin/users',
+    'tax rates' => '/admin/tax-rates',
     'report settings' => '/admin/report-settings',
     'document library' => '/admin/documents',
 ]);
