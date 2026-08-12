@@ -307,18 +307,40 @@ class DatabaseSeeder extends Seeder
                 }
             }
 
-            // Demo Bill of Materials + a planned manufacturing order.
+            // Demo Bill of Materials: a garment made from its raw materials, with a
+            // planned manufacturing order (realistic BOM example).
             if (BillOfMaterials::query()->doesntExist()) {
-                $finished = Product::query()->where('sku', 'STP-01')->first();
-                $component = Product::query()->where('sku', 'PEN-BP')->first();
                 $mainWarehouse = Warehouse::query()->where('code', 'MAIN')->first();
-                if ($finished !== null && $component !== null && $mainWarehouse !== null) {
-                    $bom = BillOfMaterials::create(['product_id' => $finished->getKey(), 'name' => 'Default', 'output_quantity' => 1]);
-                    $bom->components()->create(['component_product_id' => $component->getKey(), 'quantity' => 2]);
+                $meter = Unit::updateOrCreate(['code' => 'MTR'], ['name' => 'Meter', 'factor' => 1]);
+
+                // Raw materials (each is a product with its own cost).
+                $material = fn (string $sku, string $name, int $unitId, float $cost): Product => Product::create([
+                    'unit_id' => $unitId, 'sku' => $sku, 'name' => $name, 'cost_price' => $cost, 'selling_price' => 0,
+                ]);
+                $fabric = $material('RM-FABRIC', 'Cotton Fabric', $meter->getKey(), 180);   // per metre
+                $thread = $material('RM-THREAD', 'Sewing Thread', $piece->getKey(), 25);
+                $collar = $material('RM-COLLAR', 'Knit Collar', $piece->getKey(), 40);
+                $button = $material('RM-BUTTON', 'Button', $piece->getKey(), 2);
+
+                // Finished garment.
+                $jersey = Product::create([
+                    'unit_id' => $piece->getKey(), 'sku' => 'FG-JERSEY', 'name' => 'Polo Jersey',
+                    'cost_price' => 0, 'selling_price' => 650,
+                ]);
+
+                // Recipe: 1 jersey = 1.5m fabric + 0.2 thread + 1 collar + 3 buttons
+                // (standard material cost ≈ 321).
+                $bom = BillOfMaterials::create(['product_id' => $jersey->getKey(), 'name' => 'Polo Jersey v1', 'output_quantity' => 1]);
+                $bom->components()->create(['component_product_id' => $fabric->getKey(), 'quantity' => 1.5]);
+                $bom->components()->create(['component_product_id' => $thread->getKey(), 'quantity' => 0.2]);
+                $bom->components()->create(['component_product_id' => $collar->getKey(), 'quantity' => 1]);
+                $bom->components()->create(['component_product_id' => $button->getKey(), 'quantity' => 3]);
+
+                if ($mainWarehouse !== null) {
                     ManufacturingOrder::create([
                         'reference' => 'MO-0001', 'bill_of_materials_id' => $bom->getKey(),
-                        'product_id' => $finished->getKey(), 'warehouse_id' => $mainWarehouse->getKey(),
-                        'quantity' => 3, 'status' => 'planned',
+                        'product_id' => $jersey->getKey(), 'warehouse_id' => $mainWarehouse->getKey(),
+                        'quantity' => 100, 'status' => 'planned',
                     ]);
                 }
             }
