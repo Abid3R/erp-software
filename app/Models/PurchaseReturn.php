@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PurchaseReturnStatus;
 use App\Models\Concerns\BelongsToCompany;
+use App\Models\Concerns\HasDocuments;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class PurchaseReturn extends Model
 {
     use BelongsToCompany;
+    use HasDocuments;
 
     /** @var list<string> */
     protected $fillable = [

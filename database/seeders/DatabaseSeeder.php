@@ -10,6 +10,7 @@ use App\Actions\Purchasing\ReceiveGoods;
 use App\Actions\Sales\RecordSale;
 use App\Actions\Workflow\SubmitForApproval;
 use App\Enums\AccountType;
+use App\Enums\DocumentCategory;
 use App\Enums\PaymentDirection;
 use App\Enums\PaymentMethod;
 use App\Enums\PeriodStatus;
@@ -23,6 +24,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Customer;
+use App\Models\Document;
 use App\Models\Department;
 use App\Models\Designation;
 use App\Models\FixedAsset;
@@ -56,6 +58,7 @@ use App\Support\CompanyContext;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -317,6 +320,22 @@ class DatabaseSeeder extends Seeder
                         'valid_until' => date('Y-m-d', strtotime('+14 days')), 'status' => 'sent',
                     ]);
                     $qt->lines()->create(['product_id' => $qtProduct->getKey(), 'quantity' => 25, 'unit_price' => 430]);
+                }
+            }
+
+            // Demo DMS document attached to the quotation (private-disk file).
+            if (Document::query()->doesntExist()) {
+                $demoQuote = Quotation::query()->where('number', 'QT-0001')->first();
+                if ($demoQuote !== null) {
+                    $path = 'documents/demo-quotation-terms.txt';
+                    Storage::disk(Document::DISK)->put($path, "Demo quotation terms & conditions.\nNet 30. Prices valid 14 days.\n");
+                    $demoQuote->documents()->create([
+                        'category' => DocumentCategory::Quotation->value,
+                        'title' => 'Quotation terms & conditions',
+                        'file_path' => $path,
+                        'original_name' => 'quotation-terms.txt',
+                        'notes' => 'Attached at issue.',
+                    ]);
                 }
             }
 

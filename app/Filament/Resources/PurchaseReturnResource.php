@@ -7,6 +7,7 @@ use App\Enums\PurchaseReturnStatus;
 use App\Exceptions\InsufficientStockException;
 use App\Exceptions\PostingException;
 use App\Exceptions\PurchaseReturnException;
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\PurchaseReturnResource\Pages;
 use App\Models\PurchaseReturn;
 use App\Support\CompanyContext;
@@ -62,6 +63,7 @@ class PurchaseReturnResource extends Resource
                 Tables\Filters\SelectFilter::make('status')->options(PurchaseReturnStatus::options()),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (PurchaseReturn $record): bool => $record->status === PurchaseReturnStatus::Draft),
                 Tables\Actions\Action::make('post')->icon('heroicon-o-check-badge')->color('success')
@@ -84,11 +86,17 @@ class PurchaseReturnResource extends Resource
             ->defaultSort('return_date', 'desc');
     }
 
+    public static function getRelations(): array
+    {
+        return [DocumentsRelationManager::class];
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListPurchaseReturns::route('/'),
             'create' => Pages\CreatePurchaseReturn::route('/create'),
+            'view' => Pages\ViewPurchaseReturn::route('/{record}'),
             'edit' => Pages\EditPurchaseReturn::route('/{record}/edit'),
         ];
     }

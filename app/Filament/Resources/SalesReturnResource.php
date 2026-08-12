@@ -6,6 +6,7 @@ use App\Actions\Sales\PostSalesReturn;
 use App\Enums\SalesReturnStatus;
 use App\Exceptions\PostingException;
 use App\Exceptions\SalesReturnException;
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\SalesReturnResource\Pages;
 use App\Models\Product;
 use App\Models\SalesReturn;
@@ -69,6 +70,7 @@ class SalesReturnResource extends Resource
                 Tables\Filters\SelectFilter::make('status')->options(SalesReturnStatus::options()),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (SalesReturn $record): bool => $record->status === SalesReturnStatus::Draft),
                 Tables\Actions\Action::make('post')->icon('heroicon-o-check-badge')->color('success')
@@ -91,11 +93,17 @@ class SalesReturnResource extends Resource
             ->defaultSort('return_date', 'desc');
     }
 
+    public static function getRelations(): array
+    {
+        return [DocumentsRelationManager::class];
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListSalesReturns::route('/'),
             'create' => Pages\CreateSalesReturn::route('/create'),
+            'view' => Pages\ViewSalesReturn::route('/{record}'),
             'edit' => Pages\EditSalesReturn::route('/{record}/edit'),
         ];
     }

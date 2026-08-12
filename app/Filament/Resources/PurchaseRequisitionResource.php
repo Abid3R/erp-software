@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Actions\Purchasing\CreateRfqFromRequisition;
 use App\Enums\RequisitionStatus;
 use App\Exceptions\SourcingException;
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\PurchaseRequisitionResource\Pages;
 use App\Models\PurchaseRequisition;
 use App\Models\Warehouse;
@@ -89,6 +90,11 @@ class PurchaseRequisitionResource extends Resource
                     }),
             ])
             ->defaultSort('created_at', 'desc');
+    }
+
+    public static function getRelations(): array
+    {
+        return [DocumentsRelationManager::class];
     }
 
     public static function getPages(): array

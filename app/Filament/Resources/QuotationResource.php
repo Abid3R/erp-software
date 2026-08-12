@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Actions\Sales\ConvertQuotationToOrder;
 use App\Enums\QuotationStatus;
 use App\Exceptions\QuotationException;
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\QuotationResource\Pages;
 use App\Models\Product;
 use App\Models\Quotation;
@@ -70,6 +71,7 @@ class QuotationResource extends Resource
                 Tables\Filters\SelectFilter::make('status')->options(QuotationStatus::options()),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (Quotation $record): bool => in_array($record->status, [QuotationStatus::Draft, QuotationStatus::Sent], true)),
                 Tables\Actions\Action::make('send')->icon('heroicon-o-paper-airplane')->color('info')
@@ -101,11 +103,17 @@ class QuotationResource extends Resource
             ->defaultSort('quote_date', 'desc');
     }
 
+    public static function getRelations(): array
+    {
+        return [DocumentsRelationManager::class];
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListQuotations::route('/'),
             'create' => Pages\CreateQuotation::route('/create'),
+            'view' => Pages\ViewQuotation::route('/{record}'),
             'edit' => Pages\EditQuotation::route('/{record}/edit'),
         ];
     }

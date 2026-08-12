@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\PrintController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,3 +18,8 @@ Route::middleware(['web', 'auth'])->prefix('print')->name('print.')->group(funct
     Route::get('sales-order/{salesOrder}', [PrintController::class, 'salesOrder'])->name('sales-order');
     Route::get('quotation/{quotation}', [PrintController::class, 'quotation'])->name('quotation');
 });
+
+// DMS downloads — private files, authorised per company (see DocumentController).
+Route::middleware(['web', 'auth'])
+    ->get('documents/{document}/download', [DocumentController::class, 'download'])
+    ->name('documents.download');

@@ -8,6 +8,7 @@ use App\Exceptions\InsufficientStockException;
 use App\Exceptions\PostingException;
 use App\Exceptions\SalesOrderException;
 use App\Filament\Resources\SalesOrderResource\Pages;
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\SalesOrderResource\RelationManagers\LinesRelationManager;
 use App\Models\SalesOrder;
 use App\Support\CompanyContext;
@@ -127,7 +128,7 @@ class SalesOrderResource extends Resource
 
     public static function getRelations(): array
     {
-        return [LinesRelationManager::class];
+        return [LinesRelationManager::class, DocumentsRelationManager::class];
     }
 
     public static function getPages(): array

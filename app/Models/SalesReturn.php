@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SalesReturnStatus;
 use App\Models\Concerns\BelongsToCompany;
+use App\Models\Concerns\HasDocuments;
 use Brick\Math\BigDecimal;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class SalesReturn extends Model
 {
     use BelongsToCompany;
+    use HasDocuments;
 
     /** @var list<string> */
     protected $fillable = [

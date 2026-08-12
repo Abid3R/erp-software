@@ -6,6 +6,7 @@ use App\Actions\Purchasing\AwardRfq;
 use App\Domain\Purchasing\ComparativeStatement;
 use App\Enums\RfqStatus;
 use App\Exceptions\SourcingException;
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\RfqResource\Pages;
 use App\Filament\Resources\RfqResource\RelationManagers\QuotesRelationManager;
 use App\Models\Rfq;
@@ -94,7 +95,7 @@ class RfqResource extends Resource
 
     public static function getRelations(): array
     {
-        return [QuotesRelationManager::class];
+        return [QuotesRelationManager::class, DocumentsRelationManager::class];
     }
 
     public static function getPages(): array

@@ -45,6 +45,7 @@ dataset('adminPages', [
     'mrp' => '/admin/mrp',
     'users' => '/admin/users',
     'report settings' => '/admin/report-settings',
+    'document library' => '/admin/documents',
 ]);
 
 it('renders admin page for an authorised user', function (string $path) {

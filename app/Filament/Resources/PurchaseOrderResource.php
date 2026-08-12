@@ -6,6 +6,7 @@ use App\Actions\Purchasing\ReceivePurchaseOrder;
 use App\Enums\PurchaseOrderStatus;
 use App\Exceptions\PostingException;
 use App\Exceptions\PurchaseOrderException;
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\PurchaseOrderResource\Pages;
 use App\Filament\Resources\PurchaseOrderResource\RelationManagers\LinesRelationManager;
 use App\Models\PurchaseOrder;
@@ -137,7 +138,7 @@ class PurchaseOrderResource extends Resource
 
     public static function getRelations(): array
     {
-        return [LinesRelationManager::class];
+        return [LinesRelationManager::class, DocumentsRelationManager::class];
     }
 
     public static function getPages(): array
