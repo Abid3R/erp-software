@@ -12,9 +12,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Read-only payments list (receipts + supplier vouchers) with a printable voucher
- * (spec #23, #31). Payments are created through the payment actions; this screen
- * surfaces and prints them.
+ * Payments list (receipts + supplier vouchers) with a printable voucher (spec #23,
+ * #31). Posted rows stay immutable — creation happens via the "Record receipt" /
+ * "Record payment" header actions on the list page, which call the idempotent
+ * payment actions; there is no row edit/delete of a posted payment.
  */
 class PaymentResource extends Resource
 {
