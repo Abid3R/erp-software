@@ -29,7 +29,9 @@ use App\Models\FixedAsset;
 use App\Models\Employee;
 use App\Models\Holiday;
 use App\Models\Journal;
+use App\Models\Lead;
 use App\Models\LeaveRequest;
+use App\Models\Opportunity;
 use App\Models\ManufacturingOrder;
 use App\Models\LeaveType;
 use App\Models\Payment;
@@ -370,6 +372,16 @@ class DatabaseSeeder extends Seeder
                         'quantity' => 100, 'status' => 'planned',
                     ]);
                 }
+            }
+
+            // Demo CRM: a couple of leads and pipeline opportunities.
+            if (Lead::query()->doesntExist()) {
+                Lead::create(['name' => 'Kamal Ahmed', 'company_name' => 'Ahmed Textiles', 'email' => 'kamal@ahmed.test', 'phone' => '01711000000', 'source' => 'Trade show', 'status' => 'qualified']);
+                Lead::create(['name' => 'Rina Das', 'company_name' => 'Das Garments', 'email' => 'rina@das.test', 'source' => 'Website', 'status' => 'new']);
+
+                $crmCustomer = Customer::query()->where('code', 'CUST-001')->first();
+                Opportunity::create(['name' => 'Jersey bulk order', 'customer_id' => $crmCustomer?->getKey(), 'stage' => 'proposal', 'expected_value' => 500000, 'probability' => 50, 'expected_close_date' => date('Y-m-d', strtotime('+30 days'))]);
+                Opportunity::create(['name' => 'Uniform contract', 'stage' => 'negotiation', 'expected_value' => 800000, 'probability' => 75, 'expected_close_date' => date('Y-m-d', strtotime('+45 days'))]);
             }
 
             // Demo fixed asset (depreciable).
