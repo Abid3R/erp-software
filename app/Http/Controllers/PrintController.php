@@ -13,6 +13,7 @@ use App\Models\Roster;
 use App\Models\SalesOrder;
 use App\Models\StockAdjustment;
 use App\Models\StockTransfer;
+use App\Models\SupplierInvoice;
 use App\Support\CompanyContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -142,6 +143,17 @@ class PrintController extends Controller
             'adjustment' => $stockAdjustment->load('lines.product', 'warehouse', 'company'),
             'company' => $stockAdjustment->company,
             'setting' => $stockAdjustment->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function supplierInvoice(SupplierInvoice $supplierInvoice): View
+    {
+        $this->authorizeCompany((int) $supplierInvoice->company_id);
+
+        return view('print.supplier-invoice', [
+            'invoice' => $supplierInvoice->load('lines.account', 'supplier', 'purchaseOrder', 'company'),
+            'company' => $supplierInvoice->company,
+            'setting' => $supplierInvoice->company?->reportSettingOrNew(),
         ]);
     }
 

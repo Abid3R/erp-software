@@ -42,6 +42,7 @@ dataset('adminPages', [
     'purchase orders' => '/admin/purchase-orders',
     'buying prices' => '/admin/buying-prices',
     'purchase returns' => '/admin/purchase-returns',
+    'supplier invoices' => '/admin/supplier-invoices',
     'sales orders' => '/admin/sales-orders',
     'quotations' => '/admin/quotations',
     'sales returns' => '/admin/sales-returns',

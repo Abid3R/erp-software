@@ -54,6 +54,7 @@ use App\Models\Shift;
 use App\Models\StockAdjustment;
 use App\Models\StockTransfer;
 use App\Models\Supplier;
+use App\Models\SupplierInvoice;
 use App\Models\TaxRate;
 use App\Models\Unit;
 use App\Models\User;
@@ -411,6 +412,22 @@ class DatabaseSeeder extends Seeder
                         'payment_method' => 'cash', 'reference' => 'Cash memo 12', 'status' => 'draft',
                     ]);
                     $exp->lines()->create(['account_id' => $expenseAccount->getKey(), 'amount' => 8000, 'description' => 'Office rent']);
+                }
+            }
+
+            // Demo draft Supplier Invoice (goods received, VAT 15%, clears GRNI).
+            if (SupplierInvoice::query()->doesntExist()) {
+                $siSupplier = Supplier::query()->where('code', 'SUP-001')->first();
+                $grniAccount = Account::query()->where('code', '2100')->first();
+                if ($siSupplier !== null && $grniAccount !== null) {
+                    $si = SupplierInvoice::create([
+                        'number' => 'SINV-0001', 'supplier_id' => $siSupplier->getKey(),
+                        'invoice_date' => date('Y-m-d'), 'supplier_ref' => 'GS-9921', 'status' => 'draft',
+                    ]);
+                    $si->lines()->create([
+                        'account_id' => $grniAccount->getKey(), 'amount' => 32000,
+                        'tax_code' => 'VAT15', 'description' => 'A4 paper — 100 reams',
+                    ]);
                 }
             }
 
