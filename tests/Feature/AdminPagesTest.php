@@ -19,6 +19,8 @@ dataset('adminPages', [
     'opportunities' => '/admin/opportunities',
     'pipeline' => '/admin/pipeline',
     'stock levels' => '/admin/stocks',
+    'stock adjustments' => '/admin/stock-adjustments',
+    'stock transfers' => '/admin/stock-transfers',
     'journals' => '/admin/journals',
     'general ledger' => '/admin/general-ledger',
     'payments' => '/admin/payments',

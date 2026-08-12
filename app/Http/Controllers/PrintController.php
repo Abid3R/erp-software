@@ -10,6 +10,8 @@ use App\Models\PurchaseOrder;
 use App\Models\Quotation;
 use App\Models\Roster;
 use App\Models\SalesOrder;
+use App\Models\StockAdjustment;
+use App\Models\StockTransfer;
 use App\Support\CompanyContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -117,6 +119,28 @@ class PrintController extends Controller
             'quotation' => $quotation->load('lines.product', 'customer', 'warehouse', 'company'),
             'company' => $quotation->company,
             'setting' => $quotation->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function stockAdjustment(StockAdjustment $stockAdjustment): View
+    {
+        $this->authorizeCompany((int) $stockAdjustment->company_id);
+
+        return view('print.stock-adjustment', [
+            'adjustment' => $stockAdjustment->load('lines.product', 'warehouse', 'company'),
+            'company' => $stockAdjustment->company,
+            'setting' => $stockAdjustment->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function stockTransfer(StockTransfer $stockTransfer): View
+    {
+        $this->authorizeCompany((int) $stockTransfer->company_id);
+
+        return view('print.stock-transfer', [
+            'transfer' => $stockTransfer->load('lines.product', 'fromWarehouse', 'toWarehouse', 'company'),
+            'company' => $stockTransfer->company,
+            'setting' => $stockTransfer->company?->reportSettingOrNew(),
         ]);
     }
 

@@ -50,6 +50,8 @@ use App\Models\Roster;
 use App\Models\SalesOrder;
 use App\Models\SalesReturn;
 use App\Models\Shift;
+use App\Models\StockAdjustment;
+use App\Models\StockTransfer;
 use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\User;
@@ -351,6 +353,36 @@ class DatabaseSeeder extends Seeder
                         'status' => 'draft',
                     ]);
                     $sr->lines()->create(['product_id' => $srProduct->getKey(), 'quantity' => 3, 'unit_price' => 420]);
+                }
+            }
+
+            // Demo draft Stock Adjustment (physical count found extra stock).
+            if (StockAdjustment::query()->doesntExist()) {
+                $adjWarehouse = Warehouse::query()->where('code', 'MAIN')->first();
+                $adjProduct = Product::query()->where('sku', 'PAP-A4')->first();
+                if ($adjWarehouse !== null && $adjProduct !== null) {
+                    $adj = StockAdjustment::create([
+                        'number' => 'ADJ-0001', 'warehouse_id' => $adjWarehouse->getKey(),
+                        'adjustment_date' => date('Y-m-d'), 'reason' => 'Physical count', 'status' => 'draft',
+                    ]);
+                    $adj->lines()->create(['product_id' => $adjProduct->getKey(), 'direction' => 'in', 'quantity' => 5, 'unit_cost' => 320]);
+                }
+            }
+
+            // Demo draft Stock Transfer (MAIN -> a second store warehouse).
+            if (StockTransfer::query()->doesntExist()) {
+                $mainWarehouse = Warehouse::query()->where('code', 'MAIN')->first();
+                $trfProduct = Product::query()->where('sku', 'PAP-A4')->first();
+                if ($mainWarehouse !== null && $trfProduct !== null) {
+                    $store = Warehouse::updateOrCreate(
+                        ['company_id' => $mainWarehouse->company_id, 'code' => 'STORE'],
+                        ['name' => 'Retail Store', 'branch_id' => $mainWarehouse->branch_id],
+                    );
+                    $trf = StockTransfer::create([
+                        'number' => 'TRF-0001', 'from_warehouse_id' => $mainWarehouse->getKey(),
+                        'to_warehouse_id' => $store->getKey(), 'transfer_date' => date('Y-m-d'), 'status' => 'draft',
+                    ]);
+                    $trf->lines()->create(['product_id' => $trfProduct->getKey(), 'quantity' => 10]);
                 }
             }
 
