@@ -39,6 +39,8 @@ use App\Models\PayrollRun;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequisition;
+use App\Models\PurchaseReturn;
+use App\Models\SupplierPrice;
 use App\Models\ReportSetting;
 use App\Models\RfqQuote;
 use App\Models\Roster;
@@ -317,6 +319,24 @@ class DatabaseSeeder extends Seeder
                     if ($rfqLine !== null) {
                         RfqQuote::create(['rfq_id' => $rfq->getKey(), 'rfq_line_id' => $rfqLine->getKey(), 'supplier_id' => $sup1->getKey(), 'unit_price' => 320]);
                         RfqQuote::create(['rfq_id' => $rfq->getKey(), 'rfq_line_id' => $rfqLine->getKey(), 'supplier_id' => $sup2->getKey(), 'unit_price' => 310]);
+                    }
+                }
+            }
+
+            // Demo buying price (auto-fills PO lines) + a draft purchase return.
+            if (SupplierPrice::query()->doesntExist()) {
+                $bpSupplier = Supplier::query()->where('code', 'SUP-001')->first();
+                $bpProduct = Product::query()->where('sku', 'PAP-A4')->first();
+                $bpWarehouse = Warehouse::query()->where('code', 'MAIN')->first();
+                if ($bpSupplier !== null && $bpProduct !== null) {
+                    SupplierPrice::create(['supplier_id' => $bpSupplier->getKey(), 'product_id' => $bpProduct->getKey(), 'unit_price' => 315]);
+
+                    if ($bpWarehouse !== null) {
+                        $pr = PurchaseReturn::create([
+                            'number' => 'PR-0001', 'supplier_id' => $bpSupplier->getKey(),
+                            'warehouse_id' => $bpWarehouse->getKey(), 'return_date' => date('Y-m-d'), 'status' => 'draft',
+                        ]);
+                        $pr->lines()->create(['product_id' => $bpProduct->getKey(), 'quantity' => 5]);
                     }
                 }
             }

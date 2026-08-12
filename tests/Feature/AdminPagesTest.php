@@ -37,6 +37,8 @@ dataset('adminPages', [
     'requisitions' => '/admin/purchase-requisitions',
     'rfqs' => '/admin/rfqs',
     'purchase orders' => '/admin/purchase-orders',
+    'buying prices' => '/admin/buying-prices',
+    'purchase returns' => '/admin/purchase-returns',
     'sales orders' => '/admin/sales-orders',
     'mrp' => '/admin/mrp',
     'users' => '/admin/users',

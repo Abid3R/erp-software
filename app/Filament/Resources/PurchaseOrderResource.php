@@ -54,7 +54,18 @@ class PurchaseOrderResource extends Resource
             Forms\Components\DatePicker::make('expected_date'),
             Forms\Components\TextInput::make('notes')->maxLength(255)->columnSpanFull(),
             Forms\Components\Repeater::make('lines')->relationship()->schema([
-                Forms\Components\Select::make('product_id')->label('Product')->relationship('product', 'name')->searchable()->preload()->required(),
+                Forms\Components\Select::make('product_id')->label('Product')->relationship('product', 'name')->searchable()->preload()->required()
+                    ->live()
+                    // Pre-fill the line price from the supplier's buying price, if one exists.
+                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set): void {
+                        $supplierId = $get('../../supplier_id');
+                        if ($state !== null && $supplierId !== null) {
+                            $price = \App\Models\SupplierPrice::priceFor((int) $supplierId, (int) $state);
+                            if ($price !== null) {
+                                $set('unit_price', $price);
+                            }
+                        }
+                    }),
                 Forms\Components\TextInput::make('quantity_ordered')->numeric()->minValue(0.0001)->required(),
                 Forms\Components\TextInput::make('unit_price')->numeric()->minValue(0)->required()->prefix(config('erp.currency.symbol')),
             ])->columns(3)->minItems(1)->addActionLabel('Add line')->columnSpanFull(),
