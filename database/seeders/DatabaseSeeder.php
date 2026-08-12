@@ -25,6 +25,7 @@ use App\Models\Category;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Document;
+use App\Models\Expense;
 use App\Models\Department;
 use App\Models\Designation;
 use App\Models\FixedAsset;
@@ -383,6 +384,18 @@ class DatabaseSeeder extends Seeder
                         'to_warehouse_id' => $store->getKey(), 'transfer_date' => date('Y-m-d'), 'status' => 'draft',
                     ]);
                     $trf->lines()->create(['product_id' => $trfProduct->getKey(), 'quantity' => 10]);
+                }
+            }
+
+            // Demo draft Expense voucher (office rent paid in cash).
+            if (Expense::query()->doesntExist()) {
+                $expenseAccount = Account::query()->where('code', '5200')->first();
+                if ($expenseAccount !== null) {
+                    $exp = Expense::create([
+                        'number' => 'EXP-0001', 'expense_date' => date('Y-m-d'),
+                        'payment_method' => 'cash', 'reference' => 'Cash memo 12', 'status' => 'draft',
+                    ]);
+                    $exp->lines()->create(['account_id' => $expenseAccount->getKey(), 'amount' => 8000, 'description' => 'Office rent']);
                 }
             }
 

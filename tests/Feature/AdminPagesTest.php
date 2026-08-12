@@ -10,6 +10,7 @@ afterEach(fn () => app(CompanyContext::class)->forget());
 dataset('adminPages', [
     'chart of accounts' => '/admin/accounts',
     'fixed assets' => '/admin/fixed-assets',
+    'expenses' => '/admin/expenses',
     'reports' => '/admin/reports',
     'approvals inbox' => '/admin/approval-requests',
     'audit log' => '/admin/audit-logs',

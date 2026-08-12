@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Hr\RosterGenerator;
+use App\Models\Expense;
 use App\Models\Journal;
 use App\Models\Payment;
 use App\Models\Payslip;
@@ -119,6 +120,17 @@ class PrintController extends Controller
             'quotation' => $quotation->load('lines.product', 'customer', 'warehouse', 'company'),
             'company' => $quotation->company,
             'setting' => $quotation->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function expense(Expense $expense): View
+    {
+        $this->authorizeCompany((int) $expense->company_id);
+
+        return view('print.expense', [
+            'expense' => $expense->load('lines.account', 'supplier', 'company'),
+            'company' => $expense->company,
+            'setting' => $expense->company?->reportSettingOrNew(),
         ]);
     }
 
