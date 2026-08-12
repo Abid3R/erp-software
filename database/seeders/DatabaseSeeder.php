@@ -25,6 +25,7 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Department;
 use App\Models\Designation;
+use App\Models\FixedAsset;
 use App\Models\Employee;
 use App\Models\Holiday;
 use App\Models\Journal;
@@ -206,6 +207,8 @@ class DatabaseSeeder extends Seeder
                 ['1100', 'Accounts Receivable', AccountType::Asset],
                 ['1200', 'Inventory', AccountType::Asset],
                 ['1250', 'Input VAT Receivable', AccountType::Asset],
+                ['1500', 'Fixed Assets', AccountType::Asset],
+                ['1600', 'Accumulated Depreciation', AccountType::Asset],
                 ['2000', 'Accounts Payable', AccountType::Liability],
                 ['2100', 'Goods Received Not Invoiced', AccountType::Liability],
                 ['2200', 'Output VAT Payable', AccountType::Liability],
@@ -216,6 +219,7 @@ class DatabaseSeeder extends Seeder
                 ['5000', 'Cost of Goods Sold', AccountType::Expense],
                 ['5100', 'Inventory Adjustment', AccountType::Expense],
                 ['5200', 'Operating Expenses', AccountType::Expense],
+                ['5300', 'Depreciation Expense', AccountType::Expense],
             ];
 
             foreach ($coa as [$code, $accountName, $type]) {
@@ -366,6 +370,15 @@ class DatabaseSeeder extends Seeder
                         'quantity' => 100, 'status' => 'planned',
                     ]);
                 }
+            }
+
+            // Demo fixed asset (depreciable).
+            if (FixedAsset::query()->doesntExist()) {
+                FixedAsset::create([
+                    'asset_code' => 'FA-0001', 'name' => 'Delivery Van', 'category' => 'Vehicle',
+                    'acquisition_date' => '2026-01-01', 'acquisition_cost' => 1200000, 'salvage_value' => 200000,
+                    'useful_life_months' => 60, 'status' => 'active',
+                ]);
             }
 
             // Public holidays (excluded from leave working-day counts).

@@ -61,6 +61,9 @@ return [
         'sales_returns' => '4100',
         'cogs' => '5000',
         'inventory_adjustment' => '5100',
+        'fixed_assets' => '1500',
+        'accumulated_depreciation' => '1600',
+        'depreciation_expense' => '5300',
     ],
 
 ];

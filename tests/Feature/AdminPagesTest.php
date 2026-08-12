@@ -9,6 +9,7 @@ afterEach(fn () => app(CompanyContext::class)->forget());
 /** Every admin surface must render for an authorised company member. */
 dataset('adminPages', [
     'chart of accounts' => '/admin/accounts',
+    'fixed assets' => '/admin/fixed-assets',
     'reports' => '/admin/reports',
     'approvals inbox' => '/admin/approval-requests',
     'audit log' => '/admin/audit-logs',
