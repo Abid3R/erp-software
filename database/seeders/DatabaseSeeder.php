@@ -41,10 +41,12 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequisition;
 use App\Models\PurchaseReturn;
 use App\Models\SupplierPrice;
+use App\Models\Quotation;
 use App\Models\ReportSetting;
 use App\Models\RfqQuote;
 use App\Models\Roster;
 use App\Models\SalesOrder;
+use App\Models\SalesReturn;
 use App\Models\Shift;
 use App\Models\Supplier;
 use App\Models\Unit;
@@ -300,6 +302,36 @@ class DatabaseSeeder extends Seeder
                         'status' => 'confirmed',
                     ]);
                     $so->lines()->create(['product_id' => $soProduct->getKey(), 'quantity_ordered' => 20, 'unit_price' => 420]);
+                }
+            }
+
+            // Demo sent Quotation (ready to convert to a sales order).
+            if (Quotation::query()->doesntExist()) {
+                $qtCustomer = Customer::query()->where('code', 'CUST-001')->first();
+                $qtWarehouse = Warehouse::query()->where('code', 'MAIN')->first();
+                $qtProduct = Product::query()->where('sku', 'PAP-A4')->first();
+                if ($qtCustomer !== null && $qtWarehouse !== null && $qtProduct !== null) {
+                    $qt = Quotation::create([
+                        'number' => 'QT-0001', 'customer_id' => $qtCustomer->getKey(),
+                        'warehouse_id' => $qtWarehouse->getKey(), 'quote_date' => date('Y-m-d'),
+                        'valid_until' => date('Y-m-d', strtotime('+14 days')), 'status' => 'sent',
+                    ]);
+                    $qt->lines()->create(['product_id' => $qtProduct->getKey(), 'quantity' => 25, 'unit_price' => 430]);
+                }
+            }
+
+            // Demo draft Sales Return (goods coming back; post to reverse revenue/COGS).
+            if (SalesReturn::query()->doesntExist()) {
+                $srCustomer = Customer::query()->where('code', 'CUST-001')->first();
+                $srWarehouse = Warehouse::query()->where('code', 'MAIN')->first();
+                $srProduct = Product::query()->where('sku', 'PAP-A4')->first();
+                if ($srCustomer !== null && $srWarehouse !== null && $srProduct !== null) {
+                    $sr = SalesReturn::create([
+                        'number' => 'SR-0001', 'customer_id' => $srCustomer->getKey(),
+                        'warehouse_id' => $srWarehouse->getKey(), 'return_date' => date('Y-m-d'),
+                        'status' => 'draft',
+                    ]);
+                    $sr->lines()->create(['product_id' => $srProduct->getKey(), 'quantity' => 3, 'unit_price' => 420]);
                 }
             }
 

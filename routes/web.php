@@ -15,4 +15,5 @@ Route::middleware(['web', 'auth'])->prefix('print')->name('print.')->group(funct
     Route::get('payslip/{payslip}', [PrintController::class, 'payslip'])->name('payslip');
     Route::get('purchase-order/{purchaseOrder}', [PrintController::class, 'purchaseOrder'])->name('purchase-order');
     Route::get('sales-order/{salesOrder}', [PrintController::class, 'salesOrder'])->name('sales-order');
+    Route::get('quotation/{quotation}', [PrintController::class, 'quotation'])->name('quotation');
 });

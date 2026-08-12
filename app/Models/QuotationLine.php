@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\Concerns\BelongsToCompany;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class QuotationLine extends Model
+{
+    use BelongsToCompany;
+
+    /** @var list<string> */
+    protected $fillable = ['company_id', 'quotation_id', 'product_id', 'quantity', 'unit_price'];
+
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return ['quantity' => 'decimal:4', 'unit_price' => 'decimal:4'];
+    }
+
+    /** @return BelongsTo<Quotation, $this> */
+    public function quotation(): BelongsTo
+    {
+        return $this->belongsTo(Quotation::class);
+    }
+
+    /** @return BelongsTo<Product, $this> */
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+}

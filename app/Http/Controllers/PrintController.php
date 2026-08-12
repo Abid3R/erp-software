@@ -7,6 +7,7 @@ use App\Models\Journal;
 use App\Models\Payment;
 use App\Models\Payslip;
 use App\Models\PurchaseOrder;
+use App\Models\Quotation;
 use App\Models\Roster;
 use App\Models\SalesOrder;
 use App\Support\CompanyContext;
@@ -105,6 +106,17 @@ class PrintController extends Controller
             'so' => $salesOrder->load('lines.product', 'customer', 'warehouse', 'company'),
             'company' => $salesOrder->company,
             'setting' => $salesOrder->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function quotation(Quotation $quotation): View
+    {
+        $this->authorizeCompany((int) $quotation->company_id);
+
+        return view('print.quotation', [
+            'quotation' => $quotation->load('lines.product', 'customer', 'warehouse', 'company'),
+            'company' => $quotation->company,
+            'setting' => $quotation->company?->reportSettingOrNew(),
         ]);
     }
 
