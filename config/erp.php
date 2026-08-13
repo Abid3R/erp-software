@@ -64,6 +64,7 @@ return [
         'fixed_assets' => '1500',
         'accumulated_depreciation' => '1600',
         'depreciation_expense' => '5300',
+        'opening_balance_equity' => '3900',
     ],
 
 ];

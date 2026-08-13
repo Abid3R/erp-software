@@ -228,6 +228,7 @@ class DatabaseSeeder extends Seeder
                 ['2200', 'Output VAT Payable', AccountType::Liability],
                 ['3000', 'Share Capital', AccountType::Equity],
                 ['3100', 'Retained Earnings', AccountType::Equity],
+                ['3900', 'Opening Balance Equity', AccountType::Equity],
                 ['4000', 'Sales Revenue', AccountType::Revenue],
                 ['4100', 'Sales Returns', AccountType::Revenue],
                 ['5000', 'Cost of Goods Sold', AccountType::Expense],
