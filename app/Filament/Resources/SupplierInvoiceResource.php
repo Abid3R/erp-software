@@ -98,6 +98,13 @@ class SupplierInvoiceResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\Action::make('match')->label('3-way match')->icon('heroicon-o-shield-check')->color('info')
+                    ->visible(fn (SupplierInvoice $record): bool => $record->purchase_order_id !== null)
+                    ->modalHeading('3-way match — PO vs GRN vs Invoice')
+                    ->modalSubmitAction(false)->modalCancelActionLabel('Close')
+                    ->modalContent(fn (SupplierInvoice $record) => view('filament.purchasing.three-way-match', [
+                        'match' => \App\Domain\Purchasing\ThreeWayMatch::for($record),
+                    ])),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (SupplierInvoice $record): bool => $record->status === SupplierInvoiceStatus::Draft),
                 Tables\Actions\Action::make('post')->icon('heroicon-o-check-badge')->color('success')
