@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Enums\Gender;
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\EmployeeResource\Pages;
 use App\Models\Department;
 use App\Models\Designation;
@@ -172,6 +173,11 @@ class EmployeeResource extends Resource
     private static function normalizeEnum(string $value): string
     {
         return str_replace([' ', '-'], '_', strtolower(trim($value)));
+    }
+
+    public static function getRelations(): array
+    {
+        return [DocumentsRelationManager::class];
     }
 
     public static function getPages(): array

@@ -6,6 +6,7 @@ use App\Enums\PaymentDirection;
 use App\Enums\PaymentMethod;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompany;
+use App\Models\Concerns\HasDocuments;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class Payment extends Model
 {
-    use Auditable, BelongsToCompany;
+    use Auditable, BelongsToCompany, HasDocuments;
 
     /** @var list<string> */
     protected $fillable = [

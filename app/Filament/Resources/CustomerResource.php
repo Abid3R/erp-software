@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Domain\Accounting\PartyLedger;
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\CustomerResource\Pages;
 use App\Models\Customer;
 use App\Support\CsvActions;
@@ -91,6 +92,11 @@ class CustomerResource extends Resource
         $customer->save();
 
         return $existing !== null ? 'updated' : 'created';
+    }
+
+    public static function getRelations(): array
+    {
+        return [DocumentsRelationManager::class];
     }
 
     public static function getPages(): array

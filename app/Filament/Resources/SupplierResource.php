@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Domain\Accounting\PartyLedger;
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\SupplierResource\Pages;
 use App\Models\Supplier;
 use App\Support\CsvActions;
@@ -91,6 +92,11 @@ class SupplierResource extends Resource
         $supplier->save();
 
         return $existing !== null ? 'updated' : 'created';
+    }
+
+    public static function getRelations(): array
+    {
+        return [DocumentsRelationManager::class];
     }
 
     public static function getPages(): array

@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\PaymentResource\Pages;
 use App\Models\Payment;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Forms;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -35,6 +38,23 @@ class PaymentResource extends Resource
         return parent::getEloquentQuery()->with(['party', 'journal']);
     }
 
+    /**
+     * Read-only form used by the View page. Payment posting happens through the
+     * receipt/payment header actions; there is no create/edit here.
+     */
+    public static function form(Form $form): Form
+    {
+        return $form->schema([
+            Forms\Components\TextInput::make('direction')->disabled(),
+            Forms\Components\DatePicker::make('date')->disabled(),
+            Forms\Components\TextInput::make('party.name')->label('Party')->disabled(),
+            Forms\Components\TextInput::make('amount')->prefix(config('erp.currency.symbol'))->disabled(),
+            Forms\Components\TextInput::make('method')->disabled(),
+            Forms\Components\TextInput::make('reference')->disabled(),
+            Forms\Components\Textarea::make('note')->disabled()->columnSpanFull(),
+        ])->columns(2)->disabled();
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -55,6 +75,7 @@ class PaymentResource extends Resource
                 ]),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\Action::make('print')
                     ->icon('heroicon-o-printer')
                     ->url(fn (Payment $record): string => route('print.payment', $record))
@@ -74,10 +95,16 @@ class PaymentResource extends Resource
             ->defaultSort('date', 'desc');
     }
 
+    public static function getRelations(): array
+    {
+        return [DocumentsRelationManager::class];
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListPayments::route('/'),
+            'view' => Pages\ViewPayment::route('/{record}'),
         ];
     }
 }

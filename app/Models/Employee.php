@@ -6,6 +6,7 @@ use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Enums\Gender;
 use App\Models\Concerns\BelongsToCompany;
+use App\Models\Concerns\HasDocuments;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Employee extends Model
 {
     use BelongsToCompany;
+    use HasDocuments;
 
     /** @var list<string> */
     protected $fillable = [
