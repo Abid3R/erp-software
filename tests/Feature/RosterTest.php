@@ -84,6 +84,24 @@ it('persists a roster and rosters only active employees', function () {
         ->and($roster->entries()->pluck('employee_id')->unique()->all())->toBe([$active->getKey()]);
 });
 
+it('persists a large roster in chunks, beyond a single-insert parameter limit', function () {
+    $company = Company::factory()->create();
+    app(CompanyContext::class)->set($company);
+    $shift = Shift::create(['name' => 'Day', 'code' => 'D', 'start_time' => '09:00', 'end_time' => '17:00', 'break_minutes' => 0]);
+
+    // 60 employees × ~130 days = ~7,800 rows. At 9 columns that is ~70k bindings —
+    // more than a single Postgres insert allows (~65k), so this fails pre-chunking.
+    $ids = [];
+    for ($i = 1; $i <= 60; $i++) {
+        $ids[] = rosterEmployee('E'.$i)->getKey();
+    }
+
+    $roster = app(GenerateRoster::class)->handle('Big', '2026-01-01', '2026-05-10', $ids, [$shift->getKey()], 1, 48);
+
+    $days = count(RosterGenerator::dateRange('2026-01-01', '2026-05-10'));
+    expect($roster->entries()->count())->toBe(60 * $days);
+});
+
 it('prints a roster for an authorised user', function () {
     $company = Company::factory()->create();
     app(CompanyContext::class)->set($company);

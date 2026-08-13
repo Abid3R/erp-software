@@ -28,12 +28,24 @@ final class RosterGenerator
         $entries = [];
         $shiftCount = count($shifts);
 
+        // Precompute per-date week keys and per-shift minutes once, rather than
+        // reparsing a Carbon date for every employee×day cell (which for a large
+        // roster is tens of thousands of allocations).
+        $weekOf = [];
+        foreach ($dates as $date) {
+            $weekOf[$date] = Carbon::parse($date)->format('o-W'); // ISO year-week
+        }
+        $shiftMinutes = [];
+        foreach ($shifts as $si => $shift) {
+            $shiftMinutes[$si] = $shift->scheduledMinutes();
+        }
+
         foreach ($employees as $ei => $employee) {
             /** @var array<string, int> $weeklyMinutes */
             $weeklyMinutes = [];
 
             foreach ($dates as $di => $date) {
-                $weekKey = Carbon::parse($date)->format('o-W'); // ISO year-week
+                $weekKey = $weekOf[$date];
 
                 if ($shiftCount === 0 || ((($di + $ei) % 7) < $offDaysPerWeek)) {
                     $entries[] = ['employee_id' => $employee->getKey(), 'date' => $date, 'shift_id' => null, 'is_off' => true, 'note' => null];
@@ -41,8 +53,9 @@ final class RosterGenerator
                     continue;
                 }
 
-                $shift = $shifts[($di + $ei) % $shiftCount];
-                $minutes = $shift->scheduledMinutes();
+                $shiftIndex = ($di + $ei) % $shiftCount;
+                $shift = $shifts[$shiftIndex];
+                $minutes = $shiftMinutes[$shiftIndex];
                 $used = $weeklyMinutes[$weekKey] ?? 0;
 
                 if ($used + $minutes > $maxHoursPerWeek * 60) {

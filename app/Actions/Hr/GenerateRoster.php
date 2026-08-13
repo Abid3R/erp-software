@@ -50,18 +50,22 @@ class GenerateRoster
             ]);
 
             $now = now();
-            $rows = array_map(
-                fn (array $row): array => [
-                    ...$row,
-                    'company_id' => $roster->company_id,
-                    'roster_id' => $roster->getKey(),
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ],
-                RosterGenerator::generate($dates, $employees, $shifts, $offDaysPerWeek, $maxHoursPerWeek),
-            );
+            $generated = RosterGenerator::generate($dates, $employees, $shifts, $offDaysPerWeek, $maxHoursPerWeek);
 
-            if ($rows !== []) {
+            // Insert in chunks: a single insert of a large roster (employees × days) can
+            // run to hundreds of thousands of bindings — exhausting memory and blowing
+            // past Postgres's ~65k parameter limit. 800 rows keeps both comfortably low.
+            foreach (array_chunk($generated, 800) as $chunk) {
+                $rows = array_map(
+                    fn (array $row): array => [
+                        ...$row,
+                        'company_id' => $roster->company_id,
+                        'roster_id' => $roster->getKey(),
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ],
+                    $chunk,
+                );
                 RosterEntry::insert($rows);
             }
 
