@@ -49,6 +49,8 @@ dataset('adminPages', [
     'supplier invoices' => '/admin/supplier-invoices',
     'sales orders' => '/admin/sales-orders',
     'quotations' => '/admin/quotations',
+    'sales register' => '/admin/sales-register',
+    'purchase register' => '/admin/purchase-register',
     'sales returns' => '/admin/sales-returns',
     'mrp' => '/admin/mrp',
     'users' => '/admin/users',
