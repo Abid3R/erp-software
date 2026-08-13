@@ -220,6 +220,7 @@ class DatabaseSeeder extends Seeder
                 ['1010', 'Bank', AccountType::Asset],
                 ['1100', 'Accounts Receivable', AccountType::Asset],
                 ['1200', 'Inventory', AccountType::Asset],
+                ['1300', 'Work In Progress', AccountType::Asset],
                 ['1250', 'Input VAT Receivable', AccountType::Asset],
                 ['1500', 'Fixed Assets', AccountType::Asset],
                 ['1600', 'Accumulated Depreciation', AccountType::Asset],

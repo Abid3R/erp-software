@@ -25,4 +25,19 @@ class ManufacturingException extends RuntimeException
     {
         return new self('Manufacturing quantities must be greater than zero.');
     }
+
+    public static function alreadyIssued(): self
+    {
+        return new self('Materials have already been issued for this order.');
+    }
+
+    public static function materialsNotIssued(): self
+    {
+        return new self('Issue the BOM materials before recording production.');
+    }
+
+    public static function overProduction(): self
+    {
+        return new self('Cannot produce more than the remaining order quantity.');
+    }
 }

@@ -70,21 +70,23 @@ class SupplierResource extends Resource
     /** @param array<string, string> $row */
     public static function importRow(array $row): string
     {
-        $code = $row['Code'] ?? '';
-        $name = $row['Name'] ?? '';
+        $get = fn (string ...$aliases): string => CsvActions::value($row, ...$aliases);
+        $code = $get('Code', 'Supplier code');
+        $name = $get('Name', 'Supplier name');
         if ($name === '') {
             return 'skipped';
         }
 
         $existing = $code !== '' ? Supplier::query()->where('code', $code)->first() : Supplier::query()->where('name', $name)->first();
         $supplier = $existing ?? new Supplier;
+        $active = $get('Active');
         $supplier->fill([
             'code' => $code !== '' ? $code : ($existing->code ?? null),
             'name' => $name,
-            'phone' => ($row['Phone'] ?? '') ?: null,
-            'email' => ($row['Email'] ?? '') ?: null,
-            'address' => ($row['Address'] ?? '') ?: null,
-            'is_active' => isset($row['Active']) ? CsvActions::bool($row['Active']) : true,
+            'phone' => $get('Phone', 'Mobile') ?: null,
+            'email' => $get('Email') ?: null,
+            'address' => $get('Address') ?: null,
+            'is_active' => $active !== '' ? CsvActions::bool($active) : true,
         ]);
         $supplier->save();
 

@@ -79,13 +79,29 @@ final class CsvActions
 
             return $counts;
         }
-        $header = array_map(fn ($h): string => trim((string) $h), $header);
+        // Strip the UTF-8 BOM that Excel prepends to exports (it corrupts the first
+        // header, e.g. "sku" -> "﻿sku") and trim each header cell.
+        $header = array_map(fn ($h): string => trim(str_replace("\xEF\xBB\xBF", '', (string) $h)), $header);
+        $width = count($header);
 
         while (($row = fgetcsv($handle)) !== false) {
-            if (count($row) !== count($header)) {
-                $counts['skipped']++;
-
+            // Skip wholly blank lines (Excel commonly leaves a trailing empty row).
+            if (count(array_filter($row, fn ($v): bool => trim((string) $v) !== '')) === 0) {
                 continue;
+            }
+
+            // Normalise the row to the header width: pad a short row, and drop empty
+            // trailing extras — only a row with real extra columns is malformed.
+            if (count($row) < $width) {
+                $row = array_pad($row, $width, '');
+            } elseif (count($row) > $width) {
+                $extra = array_slice($row, $width);
+                $row = array_slice($row, 0, $width);
+                if (count(array_filter($extra, fn ($v): bool => trim((string) $v) !== '')) > 0) {
+                    $counts['skipped']++;
+
+                    continue;
+                }
             }
 
             try {
@@ -105,5 +121,32 @@ final class CsvActions
     public static function bool(string $value): bool
     {
         return in_array(strtolower(trim($value)), ['1', 'yes', 'true', 'y'], true);
+    }
+
+    /**
+     * Read a cell by any of several header aliases, matched case- and separator-
+     * insensitively — so "Employee code", "employee_code" and "Code" all resolve to
+     * the same column. Makes imports tolerant of hand-made files whose headers don't
+     * exactly match the export template. Returns '' when no alias is present.
+     *
+     * @param  array<string, string>  $row
+     */
+    public static function value(array $row, string ...$aliases): string
+    {
+        $canon = static fn (string $s): string => (string) preg_replace('/[^a-z0-9]/', '', strtolower($s));
+
+        $map = [];
+        foreach ($row as $key => $val) {
+            $map[$canon((string) $key)] = (string) $val;
+        }
+
+        foreach ($aliases as $alias) {
+            $key = $canon($alias);
+            if (array_key_exists($key, $map)) {
+                return trim($map[$key]);
+            }
+        }
+
+        return '';
     }
 }

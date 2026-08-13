@@ -53,6 +53,7 @@ return [
         'bank' => '1010',
         'receivable' => '1100',
         'inventory' => '1200',
+        'wip' => '1300',
         'input_vat' => '1250',
         'payable' => '2000',
         'grni' => '2100',

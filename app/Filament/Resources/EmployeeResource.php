@@ -117,8 +117,13 @@ class EmployeeResource extends Resource
     /** @param array<string, string> $row */
     public static function importRow(array $row): string
     {
-        $code = $row['Code'] ?? '';
-        $first = $row['FirstName'] ?? '';
+        // Header lookups are alias-based so both the export template ("Code",
+        // "FirstName", "JoinDate") and hand-made files ("Employee code", "First name",
+        // "Join date") import correctly.
+        $get = fn (string ...$aliases): string => CsvActions::value($row, ...$aliases);
+
+        $code = $get('Code', 'Employee code', 'EmployeeCode');
+        $first = $get('FirstName', 'First name');
         if ($code === '' || $first === '') {
             return 'skipped';
         }
@@ -126,9 +131,9 @@ class EmployeeResource extends Resource
         $existing = Employee::query()->where('employee_code', $code)->first();
 
         $joinDate = $existing !== null ? Carbon::parse($existing->join_date)->format('Y-m-d') : null;
-        if (($row['JoinDate'] ?? '') !== '') {
+        if ($get('JoinDate', 'Join date') !== '') {
             try {
-                $joinDate = Carbon::parse($row['JoinDate'])->format('Y-m-d');
+                $joinDate = Carbon::parse($get('JoinDate', 'Join date'))->format('Y-m-d');
             } catch (\Throwable) {
                 // keep the previous value
             }
@@ -137,22 +142,26 @@ class EmployeeResource extends Resource
             return 'skipped'; // a new employee needs a join date (NOT NULL)
         }
 
-        $dept = ($row['Department'] ?? '') !== '' ? Department::query()->where('name', $row['Department'])->first() : null;
-        $desig = ($row['Designation'] ?? '') !== '' ? Designation::query()->where('title', $row['Designation'])->first() : null;
+        $deptName = $get('Department');
+        $desigName = $get('Designation', 'Title');
+        $dept = $deptName !== '' ? Department::query()->where('name', $deptName)->first() : null;
+        $desig = $desigName !== '' ? Designation::query()->where('title', $desigName)->first() : null;
+
+        $baseSalary = $get('BaseSalary', 'Base salary', 'Salary');
 
         $employee = $existing ?? new Employee;
         $employee->fill([
             'employee_code' => $code,
             'first_name' => $first,
-            'last_name' => ($row['LastName'] ?? '') ?: null,
-            'email' => ($row['Email'] ?? '') ?: null,
-            'phone' => ($row['Phone'] ?? '') ?: null,
+            'last_name' => $get('LastName', 'Last name') ?: null,
+            'email' => $get('Email') ?: null,
+            'phone' => $get('Phone', 'Mobile') ?: null,
             'department_id' => $dept?->getKey() ?? $existing?->department_id,
             'designation_id' => $desig?->getKey() ?? $existing?->designation_id,
-            'employment_type' => (EmploymentType::tryFrom(self::normalizeEnum($row['EmploymentType'] ?? '')) ?? EmploymentType::Permanent)->value,
-            'status' => (EmployeeStatus::tryFrom(self::normalizeEnum($row['Status'] ?? '')) ?? EmployeeStatus::Active)->value,
+            'employment_type' => (EmploymentType::tryFrom(self::normalizeEnum($get('EmploymentType', 'Employment type'))) ?? EmploymentType::Permanent)->value,
+            'status' => (EmployeeStatus::tryFrom(self::normalizeEnum($get('Status'))) ?? EmployeeStatus::Active)->value,
             'join_date' => $joinDate,
-            'base_salary' => ($row['BaseSalary'] ?? '') !== '' ? $row['BaseSalary'] : ($existing->base_salary ?? 0),
+            'base_salary' => $baseSalary !== '' ? $baseSalary : ($existing->base_salary ?? 0),
         ]);
         $employee->save();
 

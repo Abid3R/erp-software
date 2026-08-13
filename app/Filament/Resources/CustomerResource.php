@@ -70,21 +70,23 @@ class CustomerResource extends Resource
     /** @param array<string, string> $row */
     public static function importRow(array $row): string
     {
-        $code = $row['Code'] ?? '';
-        $name = $row['Name'] ?? '';
+        $get = fn (string ...$aliases): string => CsvActions::value($row, ...$aliases);
+        $code = $get('Code', 'Customer code');
+        $name = $get('Name', 'Customer name');
         if ($name === '') {
             return 'skipped';
         }
 
         $existing = $code !== '' ? Customer::query()->where('code', $code)->first() : Customer::query()->where('name', $name)->first();
         $customer = $existing ?? new Customer;
+        $active = $get('Active');
         $customer->fill([
             'code' => $code !== '' ? $code : ($existing->code ?? null),
             'name' => $name,
-            'phone' => ($row['Phone'] ?? '') ?: null,
-            'email' => ($row['Email'] ?? '') ?: null,
-            'address' => ($row['Address'] ?? '') ?: null,
-            'is_active' => isset($row['Active']) ? CsvActions::bool($row['Active']) : true,
+            'phone' => $get('Phone', 'Mobile') ?: null,
+            'email' => $get('Email') ?: null,
+            'address' => $get('Address') ?: null,
+            'is_active' => $active !== '' ? CsvActions::bool($active) : true,
         ]);
         $customer->save();
 

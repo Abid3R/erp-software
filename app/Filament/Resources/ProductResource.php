@@ -110,29 +110,36 @@ class ProductResource extends Resource
     /** @param array<string, string> $row */
     public static function importRow(array $row): string
     {
-        $sku = $row['SKU'] ?? '';
-        $name = $row['Name'] ?? '';
+        $get = fn (string ...$aliases): string => CsvActions::value($row, ...$aliases);
+        $sku = $get('SKU', 'Sku');
+        $name = $get('Name', 'Product name');
         if ($sku === '' || $name === '') {
             return 'skipped';
         }
 
         $existing = Product::query()->where('sku', $sku)->first();
-        $unit = ($row['Unit'] ?? '') !== '' ? Unit::query()->where('code', $row['Unit'])->first() : null;
+        $unitCode = $get('Unit', 'UOM');
+        $unit = $unitCode !== '' ? Unit::query()->where('code', $unitCode)->first() : null;
 
         // A new product must resolve a stock unit (NOT NULL); an update may keep its own.
         if ($existing === null && $unit === null) {
             return 'skipped';
         }
 
+        $cost = $get('CostPrice', 'Cost price', 'Cost');
+        $sell = $get('SellingPrice', 'Selling price', 'Price');
+        $reorder = $get('ReorderLevel', 'Reorder level');
+        $active = $get('Active');
+
         $product = $existing ?? new Product;
         $product->fill([
             'sku' => $sku,
             'name' => $name,
             'unit_id' => $unit?->getKey() ?? $existing?->unit_id,
-            'cost_price' => ($row['CostPrice'] ?? '') !== '' ? $row['CostPrice'] : ($existing->cost_price ?? 0),
-            'selling_price' => ($row['SellingPrice'] ?? '') !== '' ? $row['SellingPrice'] : ($existing->selling_price ?? 0),
-            'reorder_level' => ($row['ReorderLevel'] ?? '') !== '' ? (int) $row['ReorderLevel'] : ($existing->reorder_level ?? null),
-            'is_active' => isset($row['Active']) ? CsvActions::bool($row['Active']) : true,
+            'cost_price' => $cost !== '' ? $cost : ($existing->cost_price ?? 0),
+            'selling_price' => $sell !== '' ? $sell : ($existing->selling_price ?? 0),
+            'reorder_level' => $reorder !== '' ? (int) $reorder : ($existing->reorder_level ?? null),
+            'is_active' => $active !== '' ? CsvActions::bool($active) : true,
         ]);
         $product->save();
 
