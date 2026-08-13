@@ -11,6 +11,14 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 /**
  * One immutable row on the inventory ledger. Append-only: no updated_at, and the
  * app exposes no update/delete path (spec #14, #29).
+ *
+ * @property InventoryTransactionType $type
+ * @property string $quantity
+ * @property string $unit_cost
+ * @property string $total_cost
+ * @property string $balance_after
+ * @property string $average_cost_after
+ * @property \Illuminate\Support\Carbon $created_at
  */
 class InventoryTransaction extends Model
 {
