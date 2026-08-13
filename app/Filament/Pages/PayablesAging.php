@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Domain\Reporting\PartyAging;
+use App\Domain\Reporting\PartyAgingDetail;
 use App\Support\CompanyContext;
 use Barryvdh\DomPDF\Facade\Pdf;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
@@ -56,15 +56,15 @@ class PayablesAging extends Page implements HasForms
         ];
     }
 
-    /** @return array{rows: list<array<string, mixed>>, totals: array<string, string>} */
+    /** @return array{rows: list<array{party_id: int, party: string, document: string, date: string, original: string, paid: string, outstanding: string, bucket: string}>, totals: array<string, string>} */
     public function getAging(): array
     {
         $companyId = app(CompanyContext::class)->currentId();
         if ($companyId === null) {
-            return ['rows' => [], 'totals' => []];
+            return ['rows' => [], 'totals' => ['current' => '0.00', 'd30' => '0.00', 'd60' => '0.00', 'd90plus' => '0.00', 'total' => '0.00']];
         }
 
-        return PartyAging::payables($companyId, $this->asOf);
+        return PartyAgingDetail::payables($companyId, $this->asOf);
     }
 
     public function downloadPdf(): Response
@@ -72,7 +72,7 @@ class PayablesAging extends Page implements HasForms
         $company = app(CompanyContext::class)->current();
         abort_if($company === null, 400, 'No active company selected.');
 
-        $pdf = Pdf::loadView('reports.aging-pdf', [
+        $pdf = Pdf::loadView('reports.aging-detail-pdf', [
             'title' => 'Payables Aging',
             'aging' => $this->getAging(),
             'company' => $company,
