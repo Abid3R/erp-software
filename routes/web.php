@@ -19,6 +19,7 @@ Route::middleware(['web', 'auth'])->prefix('print')->name('print.')->group(funct
     Route::get('quotation/{quotation}', [PrintController::class, 'quotation'])->name('quotation');
     Route::get('expense/{expense}', [PrintController::class, 'expense'])->name('expense');
     Route::get('supplier-invoice/{supplierInvoice}', [PrintController::class, 'supplierInvoice'])->name('supplier-invoice');
+    Route::get('goods-receipt/{goodsReceipt}', [PrintController::class, 'goodsReceipt'])->name('goods-receipt');
     Route::get('customer-statement/{customer}', [PrintController::class, 'customerStatement'])->name('customer-statement');
     Route::get('supplier-statement/{supplier}', [PrintController::class, 'supplierStatement'])->name('supplier-statement');
     Route::get('stock-adjustment/{stockAdjustment}', [PrintController::class, 'stockAdjustment'])->name('stock-adjustment');

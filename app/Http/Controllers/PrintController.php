@@ -6,6 +6,7 @@ use App\Domain\Hr\RosterGenerator;
 use App\Domain\Reporting\PartyStatement;
 use App\Models\Customer;
 use App\Models\Expense;
+use App\Models\GoodsReceipt;
 use App\Models\Journal;
 use App\Models\Payment;
 use App\Models\Payslip;
@@ -135,6 +136,17 @@ class PrintController extends Controller
             'expense' => $expense->load('lines.account', 'supplier', 'company'),
             'company' => $expense->company,
             'setting' => $expense->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function goodsReceipt(GoodsReceipt $goodsReceipt): View
+    {
+        $this->authorizeCompany((int) $goodsReceipt->company_id);
+
+        return view('print.goods-receipt', [
+            'grn' => $goodsReceipt->load('lines.product', 'supplier', 'warehouse', 'purchaseOrder', 'company'),
+            'company' => $goodsReceipt->company,
+            'setting' => $goodsReceipt->company?->reportSettingOrNew(),
         ]);
     }
 

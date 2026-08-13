@@ -7,6 +7,7 @@ use App\Enums\PurchaseOrderStatus;
 use App\Exceptions\PostingException;
 use App\Exceptions\PurchaseOrderException;
 use App\Filament\RelationManagers\DocumentsRelationManager;
+use App\Filament\Resources\GoodsReceiptResource;
 use App\Filament\Resources\PurchaseOrderResource\Pages;
 use App\Filament\Resources\PurchaseOrderResource\RelationManagers\LinesRelationManager;
 use App\Models\PurchaseOrder;
@@ -100,7 +101,10 @@ class PurchaseOrderResource extends Resource
                         $record->update(['status' => PurchaseOrderStatus::Approved]);
                         Notification::make()->title('Purchase order approved')->success()->send();
                     }),
-                Tables\Actions\Action::make('receive')->icon('heroicon-o-truck')->color('success')
+                Tables\Actions\Action::make('grn')->label('Create GRN')->icon('heroicon-o-inbox-arrow-down')->color('success')
+                    ->visible(fn (PurchaseOrder $record): bool => $record->status->isReceivable())
+                    ->url(fn (PurchaseOrder $record): string => GoodsReceiptResource::getUrl('create', ['purchase_order_id' => $record->getKey()])),
+                Tables\Actions\Action::make('receive')->label('Quick receive')->icon('heroicon-o-truck')->color('gray')
                     ->visible(fn (PurchaseOrder $record): bool => $record->status->isReceivable())
                     ->form(fn (PurchaseOrder $record): array => [
                         Forms\Components\DatePicker::make('date')->default(now())->required(),
