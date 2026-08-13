@@ -2,7 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Actions\Hr\PostPayrollRun;
 use App\Enums\PayrollStatus;
+use App\Exceptions\PayrollException;
+use App\Exceptions\PostingException;
 use App\Filament\Resources\PayrollRunResource\Pages;
 use App\Filament\Resources\PayrollRunResource\RelationManagers\PayslipsRelationManager;
 use App\Models\Employee;
@@ -59,12 +62,25 @@ class PayrollRunResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\Action::make('finalize')->icon('heroicon-o-lock-closed')->color('success')
+                Tables\Actions\Action::make('finalize')->icon('heroicon-o-lock-closed')->color('warning')
                     ->visible(fn (PayrollRun $record): bool => $record->status === PayrollStatus::Draft)
                     ->requiresConfirmation()
                     ->action(function (PayrollRun $record): void {
                         $record->update(['status' => PayrollStatus::Finalized]);
                         Notification::make()->title('Payroll finalized')->success()->send();
+                    }),
+                Tables\Actions\Action::make('post')->icon('heroicon-o-check-badge')->color('success')
+                    ->label('Post to GL')
+                    ->visible(fn (PayrollRun $record): bool => $record->status === PayrollStatus::Finalized)
+                    ->requiresConfirmation()
+                    ->modalDescription('Posts the payroll journal (Dr Salary Expense / Cr Employee Payable). It cannot be undone.')
+                    ->action(function (PayrollRun $record): void {
+                        try {
+                            app(PostPayrollRun::class)->handle($record);
+                            Notification::make()->title('Payroll posted to the ledger')->success()->send();
+                        } catch (PayrollException|PostingException $e) {
+                            Notification::make()->title('Cannot post payroll')->body($e->getMessage())->danger()->send();
+                        }
                     }),
             ])
             ->defaultSort('created_at', 'desc');

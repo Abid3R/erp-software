@@ -236,6 +236,8 @@ class DatabaseSeeder extends Seeder
                 ['5100', 'Inventory Adjustment', AccountType::Expense],
                 ['5200', 'Operating Expenses', AccountType::Expense],
                 ['5300', 'Depreciation Expense', AccountType::Expense],
+                ['5400', 'Salary Expense', AccountType::Expense],
+                ['2300', 'Employee Payable (Salaries)', AccountType::Liability],
             ];
 
             foreach ($coa as [$code, $accountName, $type]) {
