@@ -81,7 +81,36 @@ it('imports employees from a hand-made file with spaced headers and a BOM', func
         ->and((string) Employee::query()->where('employee_code', 'EMP-0002')->first()->base_salary)->toBe('21000.00');
 });
 
+it('imports products with form-labelled headers (Stock unit / Category / Brand)', function () {
+    // Mirrors the real user-provided template — headers match the create form labels,
+    // Unit resolves by NAME (not just code), and Category / Brand auto-create.
+    $company = Company::factory()->create();
+    app(CompanyContext::class)->set($company);
+    Unit::create(['name' => 'Piece', 'code' => 'PCS', 'factor' => 1]);
+    Unit::create(['name' => 'KG', 'code' => 'KG', 'factor' => 1]);
+
+    $csv = writeCsv([
+        'Name,SKU,Barcode,Stock unit,Category,Brand,Cost price,Selling price,Reorder level,Is active,Track batches,Track serials',
+        '100% Cotton Yarn - White,YARN-COT-WHT,,KG,Raw Material,,450,500,20,Yes,No,No',
+        'Plastic Button - Black,BTN-BLK-001,,Piece,Accessories,,3,4,100,Yes,No,No',
+        "Men's Basic T-Shirt - Black - M,TSH-BLK-M-001,,Piece,Finished Goods,,0,850,20,Yes,No,No",
+    ]);
+
+    $result = CsvActions::process($csv, [ProductResource::class, 'importRow']);
+    unlink($csv);
+
+    expect($result['created'])->toBe(3)
+        ->and($result['skipped'])->toBe(0)
+        // Unit resolved by NAME ("KG", "Piece"), category auto-created.
+        ->and(App\Models\Product::query()->where('sku', 'YARN-COT-WHT')->first()->unit->code)->toBe('KG')
+        ->and(App\Models\Product::query()->where('sku', 'YARN-COT-WHT')->first()->category->name)->toBe('Raw Material')
+        ->and(App\Models\Product::query()->where('sku', 'TSH-BLK-M-001')->first()->category->name)->toBe('Finished Goods')
+        // Brand column was blank -> stays null; toggles parsed.
+        ->and(App\Models\Product::query()->where('sku', 'BTN-BLK-001')->first()->brand_id)->toBeNull()
+        ->and((bool) App\Models\Product::query()->where('sku', 'BTN-BLK-001')->first()->is_active)->toBeTrue();
+});
+
 it('exposes column headers used for export', function () {
     expect(array_keys(CustomerResource::csvColumns()))
-        ->toBe(['Code', 'Name', 'Phone', 'Email', 'Address', 'Active']);
+        ->toBe(['Code', 'Name', 'Phone', 'Email', 'Address', 'Is active']);
 });

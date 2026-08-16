@@ -3,6 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Unit;
 use App\Support\CompanyContext;
@@ -95,17 +97,27 @@ class ProductResource extends Resource
             ->defaultSort('name');
     }
 
-    /** @return array<string, string|callable> */
+    /**
+     * Export headers match the create form's field labels — so a user can open the
+     * exported CSV in Excel, add rows, and re-import without renaming any columns.
+     *
+     * @return array<string, string|callable>
+     */
     public static function csvColumns(): array
     {
         return [
-            'SKU' => 'sku',
             'Name' => 'name',
-            'Unit' => fn (Product $r): string => (string) $r->unit->code,
-            'CostPrice' => 'cost_price',
-            'SellingPrice' => 'selling_price',
-            'ReorderLevel' => 'reorder_level',
-            'Active' => fn (Product $r): string => $r->is_active ? 'yes' : 'no',
+            'SKU' => 'sku',
+            'Barcode' => 'barcode',
+            'Stock unit' => fn (Product $r): string => (string) ($r->unit->code ?? $r->unit->name ?? ''),
+            'Category' => fn (Product $r): string => (string) ($r->category->name ?? ''),
+            'Brand' => fn (Product $r): string => (string) ($r->brand->name ?? ''),
+            'Cost price' => 'cost_price',
+            'Selling price' => 'selling_price',
+            'Reorder level' => 'reorder_level',
+            'Is active' => fn (Product $r): string => $r->is_active ? 'yes' : 'no',
+            'Track batches' => fn (Product $r): string => $r->tracks_batch ? 'yes' : 'no',
+            'Track serials' => fn (Product $r): string => $r->tracks_serial ? 'yes' : 'no',
         ];
     }
 
@@ -113,6 +125,9 @@ class ProductResource extends Resource
     public static function importRow(array $row): string
     {
         $get = fn (string ...$aliases): string => CsvActions::value($row, ...$aliases);
+
+        // Required identity — accept the form's labels ("Name", "SKU") plus common
+        // exports ("Product name", "Sku").
         $sku = $get('SKU', 'Sku');
         $name = $get('Name', 'Product name');
         if ($sku === '' || $name === '') {
@@ -120,28 +135,47 @@ class ProductResource extends Resource
         }
 
         $existing = Product::query()->where('sku', $sku)->first();
-        $unitCode = $get('Unit', 'UOM');
-        $unit = $unitCode !== '' ? Unit::query()->where('code', $unitCode)->first() : null;
 
+        // Unit: accept the form's "Stock unit" label plus older exports. Match on
+        // code OR name so "KG" / "Piece" / "PCS" all resolve.
+        $unitRef = $get('Stock unit', 'Unit', 'UOM', 'Stock Unit');
+        $unit = $unitRef !== ''
+            ? Unit::query()->where(fn ($q) => $q->where('code', $unitRef)->orWhere('name', $unitRef))->first()
+            : null;
         // A new product must resolve a stock unit (NOT NULL); an update may keep its own.
         if ($existing === null && $unit === null) {
             return 'skipped';
         }
 
-        $cost = $get('CostPrice', 'Cost price', 'Cost');
-        $sell = $get('SellingPrice', 'Selling price', 'Price');
-        $reorder = $get('ReorderLevel', 'Reorder level');
-        $active = $get('Active');
+        // Category / Brand are looked up by name. Auto-create if missing so a bulk
+        // import doesn't fail on brand-new categories/brands the user is introducing.
+        $categoryName = $get('Category');
+        $category = $categoryName !== '' ? Category::firstOrCreate(['name' => $categoryName]) : null;
+        $brandName = $get('Brand');
+        $brand = $brandName !== '' ? Brand::firstOrCreate(['name' => $brandName]) : null;
+
+        $cost = $get('Cost price', 'CostPrice', 'Cost');
+        $sell = $get('Selling price', 'SellingPrice', 'Price');
+        $reorder = $get('Reorder level', 'ReorderLevel');
+        $active = $get('Is active', 'Active');
+        $batches = $get('Track batches', 'Tracks batch');
+        $serials = $get('Track serials', 'Tracks serial');
+        $barcode = $get('Barcode');
 
         $product = $existing ?? new Product;
         $product->fill([
             'sku' => $sku,
             'name' => $name,
+            'barcode' => $barcode !== '' ? $barcode : ($existing->barcode ?? null),
             'unit_id' => $unit?->getKey() ?? $existing?->unit_id,
+            'category_id' => $category?->getKey() ?? $existing?->category_id,
+            'brand_id' => $brand?->getKey() ?? $existing?->brand_id,
             'cost_price' => $cost !== '' ? $cost : ($existing->cost_price ?? 0),
             'selling_price' => $sell !== '' ? $sell : ($existing->selling_price ?? 0),
             'reorder_level' => $reorder !== '' ? (int) $reorder : ($existing->reorder_level ?? null),
             'is_active' => $active !== '' ? CsvActions::bool($active) : true,
+            'tracks_batch' => $batches !== '' ? CsvActions::bool($batches) : (bool) ($existing->tracks_batch ?? false),
+            'tracks_serial' => $serials !== '' ? CsvActions::bool($serials) : (bool) ($existing->tracks_serial ?? false),
         ]);
         $product->save();
 

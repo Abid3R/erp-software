@@ -66,7 +66,7 @@ class CustomerResource extends Resource
             'Phone' => 'phone',
             'Email' => 'email',
             'Address' => 'address',
-            'Active' => fn (Customer $r): string => $r->is_active ? 'yes' : 'no',
+            'Is active' => fn (Customer $r): string => $r->is_active ? 'yes' : 'no',
         ];
     }
 

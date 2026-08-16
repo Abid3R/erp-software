@@ -100,18 +100,20 @@ class EmployeeResource extends Resource
     /** @return array<string, string|callable> */
     public static function csvColumns(): array
     {
+        // Headers match the create-form field labels so an exported CSV can be
+        // opened in Excel, edited, and re-imported without renaming columns.
         return [
-            'Code' => 'employee_code',
-            'FirstName' => 'first_name',
-            'LastName' => 'last_name',
+            'Employee code' => 'employee_code',
+            'First name' => 'first_name',
+            'Last name' => 'last_name',
             'Email' => 'email',
             'Phone' => 'phone',
             'Department' => fn (Employee $r): string => (string) data_get($r, 'department.name', ''),
             'Designation' => fn (Employee $r): string => (string) data_get($r, 'designation.title', ''),
-            'EmploymentType' => fn (Employee $r): string => $r->employment_type->value,
+            'Employment type' => fn (Employee $r): string => $r->employment_type->value,
             'Status' => fn (Employee $r): string => $r->status->value,
-            'JoinDate' => fn (Employee $r): string => Carbon::parse($r->join_date)->format('Y-m-d'),
-            'BaseSalary' => 'base_salary',
+            'Join date' => fn (Employee $r): string => Carbon::parse($r->join_date)->format('Y-m-d'),
+            'Base salary' => 'base_salary',
         ];
     }
 

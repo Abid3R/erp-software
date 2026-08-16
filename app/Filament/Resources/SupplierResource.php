@@ -66,7 +66,7 @@ class SupplierResource extends Resource
             'Phone' => 'phone',
             'Email' => 'email',
             'Address' => 'address',
-            'Active' => fn (Supplier $r): string => $r->is_active ? 'yes' : 'no',
+            'Is active' => fn (Supplier $r): string => $r->is_active ? 'yes' : 'no',
         ];
     }
 
