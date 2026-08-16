@@ -40,4 +40,9 @@ class ManufacturingException extends RuntimeException
     {
         return new self('Cannot produce more than the remaining order quantity.');
     }
+
+    public static function nothingToShortClose(): self
+    {
+        return new self('Short-close requires some production on the order. Cancel the order instead if nothing was produced.');
+    }
 }

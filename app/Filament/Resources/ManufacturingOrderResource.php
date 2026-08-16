@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Actions\Manufacturing\CompleteManufacturingOrder;
 use App\Actions\Manufacturing\IssueManufacturingMaterials;
 use App\Actions\Manufacturing\RecordProduction;
+use App\Actions\Manufacturing\ShortCloseManufacturingOrder;
 use App\Domain\Manufacturing\MaterialAvailability;
 use App\Enums\ManufacturingOrderStatus;
 use App\Exceptions\InsufficientStockException;
@@ -135,6 +136,33 @@ class ManufacturingOrderResource extends Resource
                                 ->body('Components issued and finished goods received into stock.')->success()->send();
                         } catch (ManufacturingException|InsufficientStockException|PostingException $e) {
                             Notification::make()->title('Cannot complete')->body($e->getMessage())->danger()->send();
+                        }
+                    }),
+
+                // Short-close: real-factory case — produced less than planned, closing
+                // out the order with what was made. Writes off remaining WIP.
+                Tables\Actions\Action::make('shortClose')->label('Short close')->icon('heroicon-o-flag')->color('warning')
+                    ->visible(fn (ManufacturingOrder $record): bool =>
+                        $record->status === ManufacturingOrderStatus::InProgress
+                        && \Brick\Math\BigDecimal::of($record->quantity_produced)->isPositive()
+                        && $record->remainingToProduce()->isPositive())
+                    ->modalHeading('Short-close manufacturing order')
+                    ->modalDescription(fn (ManufacturingOrder $record): string =>
+                        'Produced '.rtrim(rtrim((string) $record->quantity_produced, '0'), '.').' of '
+                        .rtrim(rtrim((string) $record->quantity, '0'), '.').'. '
+                        .'Remaining WIP (Tk '.number_format((float) (string) $record->wip_cost, 2).') will be written off as a production variance. Cannot be undone.')
+                    ->form([
+                        Forms\Components\Textarea::make('reason')
+                            ->label('Reason for short-close')
+                            ->required()->minLength(3)->maxLength(255)
+                            ->placeholder('e.g. run stopped early, quality rejects, material shortage'),
+                    ])
+                    ->action(function (ManufacturingOrder $record, array $data): void {
+                        try {
+                            app(ShortCloseManufacturingOrder::class)->handle($record, (string) $data['reason']);
+                            Notification::make()->title('Order short-closed')->body('Remaining WIP written off; order closed.')->success()->send();
+                        } catch (ManufacturingException|PostingException $e) {
+                            Notification::make()->title('Cannot short-close')->body($e->getMessage())->danger()->send();
                         }
                     }),
 

@@ -4,6 +4,7 @@ use App\Actions\Inventory\ReceiveStock;
 use App\Actions\Manufacturing\CompleteManufacturingOrder;
 use App\Actions\Manufacturing\IssueManufacturingMaterials;
 use App\Actions\Manufacturing\RecordProduction;
+use App\Actions\Manufacturing\ShortCloseManufacturingOrder;
 use App\Domain\Accounting\TrialBalance;
 use App\Domain\Manufacturing\MaterialAvailability;
 use App\Domain\Reporting\AccountBalances;
@@ -148,6 +149,66 @@ it('runs the staged flow: issue to WIP, then partial then full production', func
         ->and((string) onHand($wh, $fg)->quantity_on_hand)->toBe('4.0000')
         ->and((string) AccountBalances::netForAccount($accounts['wip']))->toBe('0.00') // WIP reconciles to zero
         ->and(TrialBalance::isBalanced($company->getKey()))->toBeTrue();
+});
+
+it('stays in progress after partial production (does not auto-complete before required qty)', function () {
+    [$wh, $c1, $c2, $fg, $bom] = manufacturingSetup();
+    app(ReceiveStock::class)->handle($wh, $c1, '20', '10');
+    app(ReceiveStock::class)->handle($wh, $c2, '20', '5');
+    $order = ManufacturingOrder::create([
+        'bill_of_materials_id' => $bom->getKey(), 'product_id' => $fg->getKey(),
+        'warehouse_id' => $wh->getKey(), 'quantity' => 4, 'status' => 'planned',
+    ]);
+    $order = app(IssueManufacturingMaterials::class)->handle($order);
+
+    // Two partial runs, still short of 4 total.
+    $order = app(RecordProduction::class)->handle($order, '1');
+    $order = app(RecordProduction::class)->handle($order, '2');
+
+    expect($order->status)->toBe(ManufacturingOrderStatus::InProgress) // not auto-completed
+        ->and((string) $order->quantity_produced)->toBe('3.0000')
+        ->and((string) $order->remainingToProduce())->toBe('1.0000');
+});
+
+it('short-closes an in-progress order, writing off remaining WIP to inventory adjustment', function () {
+    [$wh, $c1, $c2, $fg, $bom, $company, $accounts] = manufacturingSetup();
+    // Add the inventory-adjustment account (materialUsed by the write-off).
+    $adj = Account::create(['company_id' => $company->getKey(), 'code' => '5100', 'name' => 'Inventory Adjustment', 'type' => AccountType::Expense]);
+
+    app(ReceiveStock::class)->handle($wh, $c1, '20', '10');
+    app(ReceiveStock::class)->handle($wh, $c2, '20', '5');
+    $order = ManufacturingOrder::create([
+        'bill_of_materials_id' => $bom->getKey(), 'product_id' => $fg->getKey(),
+        'warehouse_id' => $wh->getKey(), 'quantity' => 4, 'status' => 'planned',
+    ]);
+    // Issue materials for 4 (WIP = 140). Produce only 1, then short-close.
+    $order = app(IssueManufacturingMaterials::class)->handle($order);
+    $order = app(RecordProduction::class)->handle($order, '1'); // WIP = 105 remaining
+
+    $closed = app(ShortCloseManufacturingOrder::class)->handle($order, 'Machine breakdown, order abandoned');
+
+    expect($closed->status)->toBe(ManufacturingOrderStatus::ShortClosed)
+        ->and((string) $closed->quantity_produced)->toBe('1.0000') // only what was made
+        ->and((string) $closed->wip_cost)->toBe('0.00')             // WIP cleared
+        ->and($closed->notes)->toContain('Short-closed: Machine breakdown')
+        // WIP write-off: Dr Inventory Adjustment 105 / Cr WIP 105
+        ->and((string) AccountBalances::netForAccount($adj))->toBe('105.00')
+        ->and((string) AccountBalances::netForAccount($accounts['wip']))->toBe('0.00')
+        ->and(TrialBalance::isBalanced($company->getKey()))->toBeTrue();
+});
+
+it('refuses to short-close an order with zero production (must Cancel instead)', function () {
+    [$wh, $c1, $c2, $fg, $bom] = manufacturingSetup();
+    app(ReceiveStock::class)->handle($wh, $c1, '20', '10');
+    app(ReceiveStock::class)->handle($wh, $c2, '20', '5');
+    $order = ManufacturingOrder::create([
+        'bill_of_materials_id' => $bom->getKey(), 'product_id' => $fg->getKey(),
+        'warehouse_id' => $wh->getKey(), 'quantity' => 4, 'status' => 'planned',
+    ]);
+    $order = app(IssueManufacturingMaterials::class)->handle($order); // materials issued, nothing produced
+
+    expect(fn () => app(ShortCloseManufacturingOrder::class)->handle($order, 'nope'))
+        ->toThrow(ManufacturingException::class);
 });
 
 it('rejects producing more than the remaining quantity', function () {
