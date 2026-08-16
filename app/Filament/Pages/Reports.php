@@ -30,9 +30,9 @@ class Reports extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
 
-    protected static ?string $navigationGroup = 'Accounting';
+    protected static ?string $navigationGroup = 'Accounts';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 7;
 
     protected static string $view = 'filament.pages.reports';
 

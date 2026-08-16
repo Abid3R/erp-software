@@ -19,11 +19,11 @@ class FixedAssetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
 
-    protected static ?string $navigationGroup = 'Accounting';
+    protected static ?string $navigationGroup = 'Accounts';
 
     protected static ?string $navigationLabel = 'Fixed Assets';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 11;
 
     public static function form(Form $form): Form
     {

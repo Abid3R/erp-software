@@ -29,7 +29,7 @@ class SupplierInvoiceResource extends Resource
 
     protected static ?string $navigationLabel = 'Supplier Invoices';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 7;
 
     /** @return array<int|string, string> */
     private static function accountOptions(): array

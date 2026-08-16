@@ -30,7 +30,7 @@ class ExpenseResource extends Resource
 
     protected static ?string $navigationLabel = 'Expenses';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 8;
 
     /** @return array<int|string, string> Postable expense accounts for the current company. */
     private static function expenseAccountOptions(): array

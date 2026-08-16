@@ -31,7 +31,7 @@ class GoodsReceiptResource extends Resource
 
     protected static ?string $navigationLabel = 'Goods Receipts (GRN)';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 6;
 
     public static function form(Form $form): Form
     {

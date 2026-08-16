@@ -27,7 +27,7 @@ class GeneralLedger extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-list-bullet';
 
-    protected static ?string $navigationGroup = 'Accounting';
+    protected static ?string $navigationGroup = 'Accounts';
 
     protected static ?int $navigationSort = 4;
 

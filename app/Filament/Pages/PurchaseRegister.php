@@ -29,7 +29,7 @@ class PurchaseRegister extends Page implements HasForms
 
     protected static ?string $navigationLabel = 'Purchase Register';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 9;
 
     protected static string $view = 'filament.pages.purchase-register';
 

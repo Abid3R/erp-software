@@ -33,7 +33,7 @@ class StockLedger extends Page implements HasForms
 
     protected static ?string $navigationLabel = 'Stock Ledger';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 3;
 
     protected static string $view = 'filament.pages.stock-ledger';
 

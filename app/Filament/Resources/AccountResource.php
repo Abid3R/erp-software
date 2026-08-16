@@ -18,11 +18,11 @@ class AccountResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-book-open';
 
-    protected static ?string $navigationGroup = 'Accounting';
+    protected static ?string $navigationGroup = 'Accounts';
 
     protected static ?string $navigationLabel = 'Chart of Accounts';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

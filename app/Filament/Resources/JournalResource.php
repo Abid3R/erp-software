@@ -25,9 +25,9 @@ class JournalResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationGroup = 'Accounting';
+    protected static ?string $navigationGroup = 'Accounts';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $navigationLabel = 'Journals';
 

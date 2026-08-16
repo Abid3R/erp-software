@@ -26,11 +26,11 @@ class ReceivablesAging extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-trending-up';
 
-    protected static ?string $navigationGroup = 'Accounting';
+    protected static ?string $navigationGroup = 'Accounts';
 
     protected static ?string $navigationLabel = 'AR Aging';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
 
     protected static string $view = 'filament.pages.receivables-aging';
 

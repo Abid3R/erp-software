@@ -23,11 +23,11 @@ class QuotationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationGroup = 'Order Processing';
+    protected static ?string $navigationGroup = 'Sales';
 
     protected static ?string $navigationLabel = 'Quotations';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

@@ -28,7 +28,7 @@ class PurchaseReturnResource extends Resource
 
     protected static ?string $navigationLabel = 'Purchase Returns';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 8;
 
     public static function form(Form $form): Form
     {

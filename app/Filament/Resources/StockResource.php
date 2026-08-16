@@ -23,6 +23,8 @@ class StockResource extends Resource
 
     protected static ?string $navigationGroup = 'Inventory';
 
+    protected static ?int $navigationSort = 1;
+
     protected static ?string $navigationLabel = 'Stock Levels';
 
     /** Correlated subquery: on-hand at or below the product's reorder level. */

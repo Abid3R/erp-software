@@ -30,7 +30,24 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
+            ])
+            ->brandName('ERP')
+            ->sidebarCollapsibleOnDesktop()
+            // Explicit sidebar group order — business-workflow ordered, not alphabetic,
+            // so users find things where they expect them.
+            ->navigationGroups([
+                'Sales',
+                'Purchasing',
+                'Inventory',
+                'Manufacturing',
+                'Accounts',
+                'HR',
+                'CRM',
+                'Documents',
+                'Workflow',
+                'System',
+                'Access',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

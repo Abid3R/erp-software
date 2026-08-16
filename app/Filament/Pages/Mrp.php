@@ -19,7 +19,7 @@ class Mrp extends Page
 
     protected static ?string $navigationGroup = 'Manufacturing';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $title = 'MRP';
 

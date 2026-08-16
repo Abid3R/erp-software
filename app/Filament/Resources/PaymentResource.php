@@ -26,7 +26,9 @@ class PaymentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
-    protected static ?string $navigationGroup = 'Payments';
+    protected static ?string $navigationGroup = 'Accounts';
+
+    protected static ?int $navigationSort = 1;
 
     public static function canCreate(): bool
     {

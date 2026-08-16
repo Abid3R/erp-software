@@ -27,7 +27,7 @@ class PurchaseRequisitionResource extends Resource
 
     protected static ?string $navigationLabel = 'Requisitions';
 
-    protected static ?int $navigationSort = 0;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

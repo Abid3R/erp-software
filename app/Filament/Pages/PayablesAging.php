@@ -26,11 +26,11 @@ class PayablesAging extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-trending-down';
 
-    protected static ?string $navigationGroup = 'Accounting';
+    protected static ?string $navigationGroup = 'Accounts';
 
     protected static ?string $navigationLabel = 'AP Aging';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 6;
 
     protected static string $view = 'filament.pages.payables-aging';
 
