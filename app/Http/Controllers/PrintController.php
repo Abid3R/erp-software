@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Hr\RosterGenerator;
 use App\Domain\Reporting\PartyStatement;
 use App\Models\Customer;
+use App\Models\DeliveryOrder;
 use App\Models\Expense;
 use App\Models\GoodsReceipt;
 use App\Models\Journal;
@@ -136,6 +137,17 @@ class PrintController extends Controller
             'expense' => $expense->load('lines.account', 'supplier', 'company'),
             'company' => $expense->company,
             'setting' => $expense->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function deliveryOrder(DeliveryOrder $deliveryOrder): View
+    {
+        $this->authorizeCompany((int) $deliveryOrder->company_id);
+
+        return view('print.delivery-order', [
+            'do' => $deliveryOrder->load('lines.product', 'customer', 'warehouse', 'salesOrder', 'company'),
+            'company' => $deliveryOrder->company,
+            'setting' => $deliveryOrder->company?->reportSettingOrNew(),
         ]);
     }
 

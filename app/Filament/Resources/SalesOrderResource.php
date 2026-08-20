@@ -7,8 +7,9 @@ use App\Enums\SalesOrderStatus;
 use App\Exceptions\InsufficientStockException;
 use App\Exceptions\PostingException;
 use App\Exceptions\SalesOrderException;
-use App\Filament\Resources\SalesOrderResource\Pages;
 use App\Filament\RelationManagers\DocumentsRelationManager;
+use App\Filament\Resources\DeliveryOrderResource;
+use App\Filament\Resources\SalesOrderResource\Pages;
 use App\Filament\Resources\SalesOrderResource\RelationManagers\LinesRelationManager;
 use App\Models\SalesOrder;
 use App\Support\CompanyContext;
@@ -42,6 +43,12 @@ class SalesOrderResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->with('lines');
+    }
+
+    /** Whether the active company requires the Delivery Order workflow. */
+    private static function requiresDeliveryOrder(): bool
+    {
+        return (bool) (app(CompanyContext::class)->current()?->require_delivery_order ?? false);
     }
 
     public static function form(Form $form): Form
@@ -90,8 +97,13 @@ class SalesOrderResource extends Resource
                         $record->update(['status' => SalesOrderStatus::Confirmed]);
                         Notification::make()->title('Sales order confirmed')->success()->send();
                     }),
+                // Create a Delivery Order when the company requires the DO workflow.
+                Tables\Actions\Action::make('createDo')->label('Create DO')->icon('heroicon-o-truck')->color('success')
+                    ->visible(fn (SalesOrder $record): bool => $record->status->isDeliverable() && self::requiresDeliveryOrder())
+                    ->url(fn (SalesOrder $record): string => DeliveryOrderResource::getUrl('create', ['sales_order_id' => $record->getKey()])),
+                // Direct deliver (existing flow) — only when the company does NOT require a DO.
                 Tables\Actions\Action::make('deliver')->icon('heroicon-o-truck')->color('success')
-                    ->visible(fn (SalesOrder $record): bool => $record->status->isDeliverable())
+                    ->visible(fn (SalesOrder $record): bool => $record->status->isDeliverable() && ! self::requiresDeliveryOrder())
                     ->form(fn (SalesOrder $record): array => [
                         Forms\Components\DatePicker::make('date')->default(now())->required(),
                         ...$record->lines

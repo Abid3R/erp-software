@@ -3,16 +3,18 @@
 namespace App\Filament\Pages;
 
 use App\Domain\Reporting\PurchaseRegister as PurchaseRegisterReport;
+use App\Filament\Concerns\WithReportDateRange;
 use App\Support\CompanyContext;
+use App\Support\CsvExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Actions\Action;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Purchase register (spec: Reports — Phase 15). Supplier invoices in a period with
@@ -22,6 +24,7 @@ class PurchaseRegister extends Page implements HasForms
 {
     use HasPageShield;
     use InteractsWithForms;
+    use WithReportDateRange;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
@@ -33,16 +36,9 @@ class PurchaseRegister extends Page implements HasForms
 
     protected static string $view = 'filament.pages.purchase-register';
 
-    public ?string $from = null;
-
-    public ?string $to = null;
-
     public function form(Form $form): Form
     {
-        return $form->schema([
-            DatePicker::make('from')->live(),
-            DatePicker::make('to')->live(),
-        ])->columns(2)->statePath('');
+        return $form->schema($this->rangeSchema())->columns(3)->statePath('');
     }
 
     protected function getHeaderActions(): array
@@ -50,6 +46,8 @@ class PurchaseRegister extends Page implements HasForms
         return [
             Action::make('pdf')->label('Download PDF')->icon('heroicon-o-arrow-down-tray')
                 ->action(fn (): Response => $this->downloadPdf()),
+            Action::make('csv')->label('Export CSV')->icon('heroicon-o-table-cells')->color('gray')
+                ->action(fn (): StreamedResponse => $this->downloadCsv()),
         ];
     }
 
@@ -61,7 +59,9 @@ class PurchaseRegister extends Page implements HasForms
             return ['rows' => [], 'net' => '0.00'];
         }
 
-        return PurchaseRegisterReport::for($companyId, $this->from, $this->to);
+        ['from' => $from, 'to' => $to] = $this->resolvedRange();
+
+        return PurchaseRegisterReport::for($companyId, $from, $to);
     }
 
     public function downloadPdf(): Response
@@ -69,15 +69,35 @@ class PurchaseRegister extends Page implements HasForms
         $company = app(CompanyContext::class)->current();
         abort_if($company === null, 400, 'No active company selected.');
 
+        ['from' => $from, 'to' => $to] = $this->resolvedRange();
+
         $pdf = Pdf::loadView('reports.purchase-register-pdf', [
             'register' => $this->getRegister(),
             'company' => $company,
             'setting' => $company->reportSettingOrNew(),
-            'from' => $this->from,
-            'to' => $this->to,
+            'from' => $from,
+            'to' => $to,
         ]);
 
         return response()->streamDownload(fn () => print ($pdf->output()), "purchase-register-{$company->code}.pdf");
+    }
+
+    public function downloadCsv(): StreamedResponse
+    {
+        $company = app(CompanyContext::class)->current();
+        abort_if($company === null, 400, 'No active company selected.');
+
+        $register = $this->getRegister();
+        $rows = array_map(fn (array $r): array => [
+            $r['date'], $r['number'], $r['supplier'], $r['reference'], $r['status'], $r['net'],
+        ], $register['rows']);
+        $rows[] = ['', '', '', '', 'Total', $register['net']];
+
+        return CsvExport::stream(
+            ['Date', 'Invoice #', 'Supplier', 'Reference', 'Status', 'Net (BDT)'],
+            $rows,
+            "purchase-register-{$company->code}.csv",
+        );
     }
 
     public function money(string $value): string

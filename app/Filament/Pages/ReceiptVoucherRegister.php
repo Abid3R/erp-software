@@ -2,13 +2,15 @@
 
 namespace App\Filament\Pages;
 
-use App\Domain\Reporting\SalesRegister as SalesRegisterReport;
+use App\Domain\Reporting\VoucherRegister;
 use App\Filament\Concerns\WithReportDateRange;
+use App\Models\Customer;
 use App\Support\CompanyContext;
 use App\Support\CsvExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -17,28 +19,36 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Sales register (spec: Reports — Phase 15). Sales orders in a period with ordered
- * and delivered value, from {@see SalesRegisterReport}.
+ * Receipt Voucher Register (spec: Reports — Phase 15). Customer receipts in a
+ * period, from {@see VoucherRegister}. Totals reconcile with the cash/bank GL
+ * movement and AR settlements.
  */
-class SalesRegister extends Page implements HasForms
+class ReceiptVoucherRegister extends Page implements HasForms
 {
     use HasPageShield;
     use InteractsWithForms;
     use WithReportDateRange;
 
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
-    protected static ?string $navigationGroup = 'Sales';
+    protected static ?string $navigationGroup = 'Accounts';
 
-    protected static ?string $navigationLabel = 'Sales Register';
+    protected static ?string $navigationLabel = 'Receipt Vouchers';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 12;
 
-    protected static string $view = 'filament.pages.sales-register';
+    protected static string $view = 'filament.pages.receipt-voucher-register';
+
+    public ?int $partyId = null;
 
     public function form(Form $form): Form
     {
-        return $form->schema($this->rangeSchema())->columns(3)->statePath('');
+        return $form->schema([
+            ...$this->rangeSchema(),
+            Select::make('partyId')->label('Customer')
+                ->options(fn (): array => $this->customerOptions())
+                ->searchable()->preload()->placeholder('All customers')->live(),
+        ])->columns(4)->statePath('');
     }
 
     protected function getHeaderActions(): array
@@ -51,17 +61,17 @@ class SalesRegister extends Page implements HasForms
         ];
     }
 
-    /** @return array{rows: list<array<string, string>>, ordered: string, delivered: string} */
+    /** @return array{rows: list<array<string, string>>, total: string, count: int} */
     public function getRegister(): array
     {
         $companyId = app(CompanyContext::class)->currentId();
         if ($companyId === null) {
-            return ['rows' => [], 'ordered' => '0.00', 'delivered' => '0.00'];
+            return ['rows' => [], 'total' => '0.00', 'count' => 0];
         }
 
         ['from' => $from, 'to' => $to] = $this->resolvedRange();
 
-        return SalesRegisterReport::for($companyId, $from, $to);
+        return VoucherRegister::receipts($companyId, $from, $to, $this->partyId);
     }
 
     public function downloadPdf(): Response
@@ -71,15 +81,18 @@ class SalesRegister extends Page implements HasForms
 
         ['from' => $from, 'to' => $to] = $this->resolvedRange();
 
-        $pdf = Pdf::loadView('reports.sales-register-pdf', [
+        $pdf = Pdf::loadView('reports.voucher-register-pdf', [
             'register' => $this->getRegister(),
             'company' => $company,
             'setting' => $company->reportSettingOrNew(),
+            'title' => 'Receipt Voucher Register',
+            'partyLabel' => 'Customer',
             'from' => $from,
             'to' => $to,
+            'generatedBy' => auth()->user()?->name ?? 'system',
         ]);
 
-        return response()->streamDownload(fn () => print ($pdf->output()), "sales-register-{$company->code}.pdf");
+        return response()->streamDownload(fn () => print ($pdf->output()), "receipt-vouchers-{$company->code}.pdf");
     }
 
     public function downloadCsv(): StreamedResponse
@@ -89,19 +102,26 @@ class SalesRegister extends Page implements HasForms
 
         $register = $this->getRegister();
         $rows = array_map(fn (array $r): array => [
-            $r['date'], $r['number'], $r['customer'], $r['status'], $r['ordered'], $r['delivered'],
+            $r['date'], $r['reference'], $r['party'], $r['method'], $r['note'], $r['amount'],
         ], $register['rows']);
-        $rows[] = ['', '', '', 'Total', $register['ordered'], $register['delivered']];
+        $rows[] = ['', '', '', '', 'Total', $register['total']];
 
         return CsvExport::stream(
-            ['Date', 'SO #', 'Customer', 'Status', 'Ordered (BDT)', 'Delivered (BDT)'],
+            ['Date', 'Voucher/Ref', 'Customer', 'Method', 'Note', 'Amount (BDT)'],
             $rows,
-            "sales-register-{$company->code}.csv",
+            "receipt-vouchers-{$company->code}.csv",
         );
     }
 
     public function money(string $value): string
     {
         return config('erp.currency.symbol').number_format((float) $value, (int) config('erp.currency.precision', 2));
+    }
+
+    /** @return array<int, string> */
+    private function customerOptions(): array
+    {
+        return Customer::query()->orderBy('name')->pluck('name', 'id')
+            ->map(fn ($n): string => (string) $n)->all();
     }
 }

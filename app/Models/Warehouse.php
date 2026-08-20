@@ -12,7 +12,9 @@ class Warehouse extends Model
 
     /** @var list<string> */
     protected $fillable = [
-        'company_id', 'branch_id', 'name', 'code', 'allow_negative_stock', 'is_active',
+        'company_id', 'branch_id', 'name', 'code',
+        'address', 'contact_person', 'phone',
+        'allow_negative_stock', 'is_active',
     ];
 
     /** @return array<string, string> */

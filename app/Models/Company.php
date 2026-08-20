@@ -21,7 +21,7 @@ class Company extends Model
     protected $fillable = [
         'name', 'legal_name', 'code', 'currency_code', 'currency_symbol',
         'timezone', 'fiscal_year_start_month', 'tax_registration_number',
-        'default_tax_rate', 'allow_negative_stock', 'is_active',
+        'default_tax_rate', 'allow_negative_stock', 'require_delivery_order', 'is_active',
     ];
 
     /** @return array<string, string> */
@@ -31,6 +31,7 @@ class Company extends Model
             'fiscal_year_start_month' => 'integer',
             'default_tax_rate' => 'decimal:3',
             'allow_negative_stock' => 'boolean',
+            'require_delivery_order' => 'boolean',
             'is_active' => 'boolean',
         ];
     }

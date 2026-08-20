@@ -35,4 +35,24 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Gemini AI assistant (optional)
+    |--------------------------------------------------------------------------
+    | Google Gemini powers the in-panel AI assistant. It is DISABLED unless an
+    | API key is present, so the ERP behaves exactly as before until configured.
+    | Get a free key at https://aistudio.google.com/apikey (free tier is rate-
+    | limited; on the free tier Google may use prompts to improve their products,
+    | so the assistant sends only aggregate figures — never full data tables).
+    */
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-3.6-flash'),
+        'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
+        'timeout' => (int) env('GEMINI_TIMEOUT', 60),
+        // When false, party (customer/supplier) names are replaced with generic
+        // labels before anything is sent to Google — extra privacy, less detail.
+        'share_party_names' => (bool) env('GEMINI_SHARE_PARTY_NAMES', true),
+    ],
+
 ];

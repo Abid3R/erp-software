@@ -33,3 +33,4 @@ Thumbs.db
 /backups/*.sql
 /backups/*.dump
 !/backups/.gitkeep
+/ERP_Source_Code.pdf

@@ -8,16 +8,18 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages;
+use App\Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -37,6 +39,7 @@ class AdminPanelProvider extends PanelProvider
             // Explicit sidebar group order — business-workflow ordered, not alphabetic,
             // so users find things where they expect them.
             ->navigationGroups([
+                'Reports',
                 'Sales',
                 'Purchasing',
                 'Inventory',
@@ -52,7 +55,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                Dashboard::class,
             ])
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
@@ -63,6 +66,14 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
             ])
+            // Floating AI assistant on every panel page — only injected when a
+            // Gemini API key is configured, so the panel is unchanged by default.
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => filled(config('services.gemini.key'))
+                    ? Blade::render('@livewire(\'erp-assistant-chat\')')
+                    : '',
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
