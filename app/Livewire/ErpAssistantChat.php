@@ -5,13 +5,18 @@ namespace App\Livewire;
 use App\Services\Gemini\ErpAssistant;
 use App\Services\Gemini\Exceptions\GeminiException;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Lazy;
 use Livewire\Component;
 
 /**
  * Floating, read-only AI assistant available on every admin page (injected via a
  * panel render hook). Holds the conversation in component state and delegates
  * every answer to {@see ErpAssistant}; it never writes to the ERP.
+ *
+ * #[Lazy] defers hydration until the browser reaches the component, so the
+ * chat costs practically nothing on the initial page render.
  */
+#[Lazy]
 class ErpAssistantChat extends Component
 {
     public bool $open = false;
@@ -78,5 +83,13 @@ class ErpAssistantChat extends Component
     public function render()
     {
         return view('livewire.erp-assistant-chat');
+    }
+
+    /** Cheap DOM stub while the full component defers/loads. */
+    public function placeholder(): string
+    {
+        return '<div style="position:fixed;bottom:1.25rem;right:1.25rem;z-index:50;'
+            .'width:3.5rem;height:3.5rem;border-radius:9999px;background:#2563eb;'
+            .'box-shadow:0 10px 15px -3px rgba(0,0,0,.15);"></div>';
     }
 }

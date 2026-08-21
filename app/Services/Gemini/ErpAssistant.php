@@ -5,6 +5,7 @@ namespace App\Services\Gemini;
 use App\Models\Company;
 use App\Services\Gemini\Exceptions\GeminiException;
 use App\Support\CompanyContext;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * High-level AI assistant: assembles the grounding snapshot and behaviour rules,
@@ -40,9 +41,18 @@ class ErpAssistant
         return $this->client->chat($this->systemInstruction($company), $history);
     }
 
+    /** Snapshot cache TTL in seconds — short enough to stay fresh-feeling. */
+    private const SNAPSHOT_TTL = 300;
+
     private function systemInstruction(Company $company): string
     {
-        $snapshot = $this->snapshot->for($company);
+        // Reuse a recent snapshot instead of re-running P&L / aging / valuation
+        // for every message. Keyed per company so multi-tenant scopes hold.
+        $snapshot = Cache::remember(
+            "erp.ai.snapshot.company:{$company->getKey()}",
+            self::SNAPSHOT_TTL,
+            fn (): string => $this->snapshot->for($company),
+        );
 
         return <<<PROMPT
         You are the built-in AI assistant for "{$company->name}", a Bangladeshi trading/manufacturing ERP.

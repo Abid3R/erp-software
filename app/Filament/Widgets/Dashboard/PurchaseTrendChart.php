@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets\Dashboard;
 
-use App\Domain\Reporting\DashboardTrends;
+use App\Services\DashboardCache;
 use App\Support\CompanyContext;
 use App\Support\DashboardFilter;
 use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
@@ -33,7 +33,7 @@ class PurchaseTrendChart extends ChartWidget
         }
 
         ['from' => $from, 'to' => $to] = DashboardFilter::range();
-        $trends = DashboardTrends::monthly($companyId, $from, $to);
+        $trends = app(DashboardCache::class)->monthlyTrends($companyId, $from, $to);
 
         return [
             'datasets' => [[

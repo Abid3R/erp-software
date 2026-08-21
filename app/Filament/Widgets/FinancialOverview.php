@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Domain\Reporting\DashboardMetrics;
+use App\Services\DashboardCache;
 use App\Support\CompanyContext;
 use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Brick\Math\BigDecimal;
@@ -30,7 +30,7 @@ class FinancialOverview extends BaseWidget
             return [];
         }
 
-        $m = app(DashboardMetrics::class)->for($companyId);
+        $m = app(DashboardCache::class)->metrics($companyId);
 
         return [
             Stat::make('Revenue', $this->money($m['revenue']))->color('success'),

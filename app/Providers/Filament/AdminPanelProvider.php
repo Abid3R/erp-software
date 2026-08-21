@@ -67,7 +67,8 @@ class AdminPanelProvider extends PanelProvider
                 Widgets\AccountWidget::class,
             ])
             // Floating AI assistant on every panel page — only injected when a
-            // Gemini API key is configured, so the panel is unchanged by default.
+            // Gemini API key is configured. The component is #[Lazy], so it
+            // hydrates on first click rather than on every page load.
             ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn (): string => filled(config('services.gemini.key'))
