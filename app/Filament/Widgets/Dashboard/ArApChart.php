@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets\Dashboard;
 
 use App\Domain\Reporting\PartyAging;
+use App\Filament\Widgets\Dashboard\Concerns\ChartTheme;
 use App\Support\CompanyContext;
 use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
@@ -14,6 +15,7 @@ use Filament\Widgets\ChartWidget;
  */
 class ArApChart extends ChartWidget
 {
+    use ChartTheme;
     use HasWidgetShield;
 
     protected static ?string $heading = 'Receivables vs Payables (aging)';
@@ -43,16 +45,22 @@ class ArApChart extends ChartWidget
                 [
                     'label' => 'Receivables',
                     'data' => array_map(fn (string $k): float => (float) $ar[$k], $keys),
-                    'backgroundColor' => 'rgba(16, 185, 129, 0.55)',
-                    'borderColor' => 'rgb(16, 185, 129)',
-                    'borderWidth' => 1,
+                    'backgroundColor' => self::rgba(self::C_EMERALD, 0.85),
+                    'hoverBackgroundColor' => self::C_EMERALD,
+                    'borderWidth' => 0,
+                    'borderRadius' => 5,
+                    'borderSkipped' => false,
+                    'maxBarThickness' => 26,
                 ],
                 [
                     'label' => 'Payables',
                     'data' => array_map(fn (string $k): float => (float) $ap[$k], $keys),
-                    'backgroundColor' => 'rgba(244, 63, 94, 0.55)',
-                    'borderColor' => 'rgb(244, 63, 94)',
-                    'borderWidth' => 1,
+                    'backgroundColor' => self::rgba(self::C_ROSE, 0.85),
+                    'hoverBackgroundColor' => self::C_ROSE,
+                    'borderWidth' => 0,
+                    'borderRadius' => 5,
+                    'borderSkipped' => false,
+                    'maxBarThickness' => 26,
                 ],
             ],
             'labels' => $labels,
@@ -67,8 +75,10 @@ class ArApChart extends ChartWidget
     protected function getOptions(): array
     {
         return [
-            'plugins' => ['legend' => ['position' => 'bottom']],
-            'scales' => ['y' => ['beginAtZero' => true]],
+            'maintainAspectRatio' => false,
+            'animation' => $this->themeAnimation(),
+            'plugins' => $this->themePlugins(legend: true, legendPosition: 'bottom'),
+            'scales' => $this->themeScales('y'),
         ];
     }
 }

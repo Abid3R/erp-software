@@ -14,6 +14,11 @@ return [
     'currency' => [
         'code' => env('DEFAULT_CURRENCY', 'BDT'),
         'symbol' => env('DEFAULT_CURRENCY_SYMBOL', '৳'),
+        // Server-rendered report PDFs use DomPDF's bundled DejaVu Sans font, which
+        // has no Bengali Taka glyph (U+09F3). So those reports print an ASCII-safe
+        // label instead — "Tk"/"BDT" is the convention on Bangladeshi system-
+        // generated reports. Browser-printed documents keep the real ৳ symbol.
+        'pdf_symbol' => env('PDF_CURRENCY_SYMBOL', 'Tk '),
         // Decimal places for monetary values (spec #52).
         'precision' => (int) env('CURRENCY_PRECISION', 2),
     ],

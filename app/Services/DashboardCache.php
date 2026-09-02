@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Domain\Reporting\DashboardMetrics;
 use App\Domain\Reporting\DashboardTrends;
+use Brick\Math\BigDecimal;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -13,6 +14,12 @@ use Illuminate\Support\Facades\Cache;
  * Filament widgets go through here to avoid re-running the same aggregates
  * for every visitor of every panel page.
  *
+ * IMPORTANT — cache primitives only, not value objects. Serialising BigDecimal
+ * via Laravel's file/redis cache is fragile (an incomplete-class error surfaces
+ * as `__PHP_Incomplete_Class` when the autoloader races the unserializer). So
+ * we store decimal strings and rebuild BigDecimal after retrieval — same public
+ * contract, zero serialization risk.
+ *
  * TTL is deliberately short so figures stay live-feeling (60 s). Cache keys are
  * per-company so multi-tenant isolation is preserved.
  */
@@ -21,15 +28,22 @@ class DashboardCache
     private const TTL_SECONDS = 60;
 
     /**
-     * @return array<string, \Brick\Math\BigDecimal>
+     * @return array<string, BigDecimal>
      */
     public function metrics(int $companyId): array
     {
-        return Cache::remember(
+        $strings = Cache::remember(
             "dashboard.metrics.company:{$companyId}",
             self::TTL_SECONDS,
-            fn (): array => app(DashboardMetrics::class)->for($companyId),
+            function () use ($companyId): array {
+                $m = app(DashboardMetrics::class)->for($companyId);
+
+                // Persist as strings so the cache blob has no class references.
+                return array_map(fn (BigDecimal $v): string => (string) $v, $m);
+            },
         );
+
+        return array_map(fn (string $v): BigDecimal => BigDecimal::of($v), $strings);
     }
 
     /**
@@ -37,6 +51,7 @@ class DashboardCache
      */
     public function monthlyTrends(int $companyId, string $from, string $to): array
     {
+        // Trends already return string arrays, so caching is safe as-is.
         $key = "dashboard.trends.company:{$companyId}.{$from}.{$to}";
 
         return Cache::remember(

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets\Dashboard;
 
+use App\Filament\Widgets\Dashboard\Concerns\ChartTheme;
 use App\Services\DashboardCache;
 use App\Support\CompanyContext;
 use App\Support\DashboardFilter;
@@ -14,6 +15,7 @@ use Filament\Widgets\ChartWidget;
  */
 class PurchaseTrendChart extends ChartWidget
 {
+    use ChartTheme;
     use HasWidgetShield;
 
     protected static ?string $heading = 'Purchase Trend';
@@ -39,9 +41,12 @@ class PurchaseTrendChart extends ChartWidget
             'datasets' => [[
                 'label' => 'Purchase value',
                 'data' => array_map('floatval', $trends['purchases']),
-                'backgroundColor' => 'rgba(234, 179, 8, 0.55)',
-                'borderColor' => 'rgb(234, 179, 8)',
-                'borderWidth' => 1,
+                'backgroundColor' => self::rgba(self::C_AMBER, 0.85),
+                'hoverBackgroundColor' => self::C_AMBER,
+                'borderWidth' => 0,
+                'borderRadius' => 6,
+                'borderSkipped' => false,
+                'maxBarThickness' => 40,
             ]],
             'labels' => $trends['labels'],
         ];
@@ -55,8 +60,10 @@ class PurchaseTrendChart extends ChartWidget
     protected function getOptions(): array
     {
         return [
-            'plugins' => ['legend' => ['display' => false]],
-            'scales' => ['y' => ['beginAtZero' => true]],
+            'maintainAspectRatio' => false,
+            'animation' => $this->themeAnimation(),
+            'plugins' => $this->themePlugins(legend: false),
+            'scales' => $this->themeScales('y'),
         ];
     }
 }

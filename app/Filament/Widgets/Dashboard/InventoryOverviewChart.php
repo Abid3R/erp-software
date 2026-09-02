@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets\Dashboard;
 
 use App\Domain\Reporting\StockValuation;
+use App\Filament\Widgets\Dashboard\Concerns\ChartTheme;
 use App\Support\CompanyContext;
 use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Brick\Math\BigDecimal;
@@ -15,6 +16,7 @@ use Filament\Widgets\ChartWidget;
  */
 class InventoryOverviewChart extends ChartWidget
 {
+    use ChartTheme;
     use HasWidgetShield;
 
     protected static ?string $heading = 'Inventory Overview — Top 10 by value';
@@ -49,9 +51,12 @@ class InventoryOverviewChart extends ChartWidget
             'datasets' => [[
                 'label' => 'Value',
                 'data' => array_map(fn (BigDecimal $v): float => (float) (string) $v, array_values($top)),
-                'backgroundColor' => 'rgba(139, 92, 246, 0.55)',
-                'borderColor' => 'rgb(139, 92, 246)',
-                'borderWidth' => 1,
+                'backgroundColor' => self::rgba(self::C_VIOLET, 0.85),
+                'hoverBackgroundColor' => self::C_VIOLET,
+                'borderWidth' => 0,
+                'borderRadius' => 6,
+                'borderSkipped' => false,
+                'maxBarThickness' => 22,
             ]],
             'labels' => array_keys($top),
         ];
@@ -66,8 +71,10 @@ class InventoryOverviewChart extends ChartWidget
     {
         return [
             'indexAxis' => 'y',
-            'plugins' => ['legend' => ['display' => false]],
-            'scales' => ['x' => ['beginAtZero' => true]],
+            'maintainAspectRatio' => false,
+            'animation' => $this->themeAnimation(),
+            'plugins' => $this->themePlugins(legend: false),
+            'scales' => $this->themeScales('x'),
         ];
     }
 }

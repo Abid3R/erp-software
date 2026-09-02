@@ -32,7 +32,14 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Blue,
+                // Corporate navy-blue — matches the report/PDF letterheads for a
+                // consistent brand across screen and print.
+                'primary' => Color::hex('#1e40af'),
+                'gray' => Color::Slate,
+                'success' => Color::Emerald,
+                'warning' => Color::Amber,
+                'danger' => Color::Rose,
+                'info' => Color::Sky,
             ])
             ->brandName('ERP')
             ->sidebarCollapsibleOnDesktop()
@@ -66,6 +73,14 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
             ])
+            // Modern ERP polish stylesheet — hand-written CSS layered over
+            // Filament's defaults (cards, KPI stats, tables, sidebar, login). It
+            // is a static file (no Vite/theme build), so it can't break the panel;
+            // versioned query string busts the browser cache on updates.
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => '<link rel="stylesheet" href="'.asset('css/erp-theme.css').'?v=2">',
+            )
             // Floating AI assistant on every panel page — only injected when a
             // Gemini API key is configured. The component is #[Lazy], so it
             // hydrates on first click rather than on every page load.

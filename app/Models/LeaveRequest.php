@@ -50,10 +50,17 @@ class LeaveRequest extends Model
             );
         });
 
-        // Alert HR / managers that a request is waiting.
+        // Alert HR / managers that a request is waiting — unless the company has
+        // switched leave-approval notifications off in Notification Settings.
         static::created(function (LeaveRequest $request): void {
+            $companyId = (int) $request->company_id;
+
+            if (! NotificationSetting::enabled($companyId, 'leave_approvals')) {
+                return;
+            }
+
             Notifier::toCompanyRoles(
-                (int) $request->company_id,
+                $companyId,
                 ['hr', 'manager'],
                 'Leave request submitted',
                 'A leave request is pending review.',

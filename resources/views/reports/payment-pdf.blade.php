@@ -1,7 +1,7 @@
 @extends('pdf.layout')
 
 @php
-    $symbol = config('erp.currency.symbol');
+    $symbol = config('erp.currency.pdf_symbol');
     $precision = (int) config('erp.currency.precision', 2);
     $amount = (float) $payment->amount;
     $whole = (int) floor($amount);

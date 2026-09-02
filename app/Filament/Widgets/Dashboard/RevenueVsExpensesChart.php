@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets\Dashboard;
 
+use App\Filament\Widgets\Dashboard\Concerns\ChartTheme;
 use App\Services\DashboardCache;
 use App\Support\CompanyContext;
 use App\Support\DashboardFilter;
@@ -14,6 +15,7 @@ use Filament\Widgets\ChartWidget;
  */
 class RevenueVsExpensesChart extends ChartWidget
 {
+    use ChartTheme;
     use HasWidgetShield;
 
     protected static ?string $heading = 'Revenue vs Expenses';
@@ -40,18 +42,30 @@ class RevenueVsExpensesChart extends ChartWidget
                 [
                     'label' => 'Revenue',
                     'data' => array_map('floatval', $trends['revenue']),
-                    'borderColor' => 'rgb(34, 197, 94)',
-                    'backgroundColor' => 'rgba(34, 197, 94, 0.15)',
-                    'tension' => 0.3,
+                    'borderColor' => self::C_EMERALD,
+                    'backgroundColor' => self::rgba(self::C_EMERALD, 0.12),
+                    'tension' => 0.4,
                     'fill' => true,
+                    'borderWidth' => 2.5,
+                    'pointRadius' => 0,
+                    'pointHoverRadius' => 5,
+                    'pointBackgroundColor' => self::C_EMERALD,
+                    'pointHoverBorderColor' => '#fff',
+                    'pointHoverBorderWidth' => 2,
                 ],
                 [
                     'label' => 'Expenses',
                     'data' => array_map('floatval', $trends['expenses']),
-                    'borderColor' => 'rgb(239, 68, 68)',
-                    'backgroundColor' => 'rgba(239, 68, 68, 0.15)',
-                    'tension' => 0.3,
+                    'borderColor' => self::C_ROSE,
+                    'backgroundColor' => self::rgba(self::C_ROSE, 0.10),
+                    'tension' => 0.4,
                     'fill' => true,
+                    'borderWidth' => 2.5,
+                    'pointRadius' => 0,
+                    'pointHoverRadius' => 5,
+                    'pointBackgroundColor' => self::C_ROSE,
+                    'pointHoverBorderColor' => '#fff',
+                    'pointHoverBorderWidth' => 2,
                 ],
             ],
             'labels' => $trends['labels'],
@@ -66,12 +80,11 @@ class RevenueVsExpensesChart extends ChartWidget
     protected function getOptions(): array
     {
         return [
-            'plugins' => [
-                'legend' => ['position' => 'bottom'],
-            ],
-            'scales' => [
-                'y' => ['beginAtZero' => true],
-            ],
+            'maintainAspectRatio' => false,
+            'interaction' => ['mode' => 'index', 'intersect' => false],
+            'animation' => $this->themeAnimation(),
+            'plugins' => $this->themePlugins(legend: true, legendPosition: 'bottom'),
+            'scales' => $this->themeScales('y'),
         ];
     }
 }

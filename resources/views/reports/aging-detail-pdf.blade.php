@@ -1,7 +1,7 @@
 @extends('pdf.layout')
 
 @php
-    $money = fn ($v) => config('erp.currency.symbol').number_format((float) (string) $v, (int) config('erp.currency.precision', 2));
+    $money = fn ($v) => config('erp.currency.pdf_symbol').number_format((float) (string) $v, (int) config('erp.currency.precision', 2));
     $bucketLabel = fn (string $b): string => ['current' => '0–30', 'd30' => '31–60', 'd60' => '61–90', 'd90plus' => '90+'][$b] ?? $b;
 @endphp
 

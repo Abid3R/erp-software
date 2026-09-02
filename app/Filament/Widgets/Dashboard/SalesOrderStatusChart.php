@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets\Dashboard;
 
 use App\Enums\SalesOrderStatus;
+use App\Filament\Widgets\Dashboard\Concerns\ChartTheme;
 use App\Models\SalesOrder;
 use App\Support\CompanyContext;
 use App\Support\DashboardFilter;
@@ -15,6 +16,7 @@ use Filament\Widgets\ChartWidget;
  */
 class SalesOrderStatusChart extends ChartWidget
 {
+    use ChartTheme;
     use HasWidgetShield;
 
     protected static ?string $heading = 'Sales Order Status';
@@ -48,11 +50,11 @@ class SalesOrderStatusChart extends ChartWidget
         $data = [];
         $colors = [];
         $palette = [
-            SalesOrderStatus::Draft->value => 'rgba(148, 163, 184, 0.75)',
-            SalesOrderStatus::Confirmed->value => 'rgba(59, 130, 246, 0.75)',
-            SalesOrderStatus::PartiallyDelivered->value => 'rgba(234, 179, 8, 0.75)',
-            SalesOrderStatus::Delivered->value => 'rgba(34, 197, 94, 0.75)',
-            SalesOrderStatus::Cancelled->value => 'rgba(239, 68, 68, 0.75)',
+            SalesOrderStatus::Draft->value => self::C_SLATE,
+            SalesOrderStatus::Confirmed->value => self::C_BLUE,
+            SalesOrderStatus::PartiallyDelivered->value => self::C_AMBER,
+            SalesOrderStatus::Delivered->value => self::C_EMERALD,
+            SalesOrderStatus::Cancelled->value => self::C_ROSE,
         ];
 
         foreach (SalesOrderStatus::cases() as $status) {
@@ -66,7 +68,10 @@ class SalesOrderStatusChart extends ChartWidget
                 'label' => 'Orders',
                 'data' => $data,
                 'backgroundColor' => $colors,
-                'borderWidth' => 0,
+                'borderColor' => 'rgba(255, 255, 255, 0.85)',
+                'borderWidth' => 2,
+                'hoverOffset' => 8,
+                'spacing' => 2,
             ]],
             'labels' => $labels,
         ];
@@ -80,7 +85,10 @@ class SalesOrderStatusChart extends ChartWidget
     protected function getOptions(): array
     {
         return [
-            'plugins' => ['legend' => ['position' => 'right']],
+            'maintainAspectRatio' => false,
+            'cutout' => '66%',
+            'animation' => $this->themeAnimation(),
+            'plugins' => $this->themePlugins(legend: true, legendPosition: 'right'),
         ];
     }
 }
