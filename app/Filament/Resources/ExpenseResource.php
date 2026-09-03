@@ -13,6 +13,7 @@ use App\Filament\Resources\ExpenseResource\Pages;
 use App\Models\Account;
 use App\Models\Expense;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -48,7 +49,7 @@ class ExpenseResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('number')->required()->maxLength(32)
-                ->default(fn (): string => 'EXP-'.str_pad((string) (Expense::query()->count() + 1), 4, '0', STR_PAD_LEFT))
+                ->default(fn (): string => DocumentNumber::next('expense', 'EXP-', Expense::query()->count()))
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
             Forms\Components\DatePicker::make('expense_date')->default(now())->required(),
             Forms\Components\Select::make('payment_method')->options(ExpensePaymentMethod::options())

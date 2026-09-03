@@ -14,6 +14,7 @@ use App\Filament\Resources\GoodsReceiptResource\Pages;
 use App\Models\GoodsReceipt;
 use App\Models\PurchaseOrder;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -37,7 +38,7 @@ class GoodsReceiptResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('number')->required()->maxLength(32)
-                ->default(fn (): string => 'GRN-'.str_pad((string) (GoodsReceipt::query()->count() + 1), 4, '0', STR_PAD_LEFT))
+                ->default(fn (): string => DocumentNumber::next('goods_receipt', 'GRN-', GoodsReceipt::query()->count()))
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
             Forms\Components\Select::make('purchase_order_id')->label('Purchase order')
                 ->options(fn (): array => PurchaseOrder::query()

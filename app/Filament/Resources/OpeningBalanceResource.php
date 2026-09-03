@@ -11,6 +11,7 @@ use App\Filament\Resources\OpeningBalanceResource\Pages;
 use App\Models\Account;
 use App\Models\OpeningBalance;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -46,7 +47,7 @@ class OpeningBalanceResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('number')->required()->maxLength(32)
-                ->default(fn (): string => 'OB-'.str_pad((string) (OpeningBalance::query()->count() + 1), 4, '0', STR_PAD_LEFT))
+                ->default(fn (): string => DocumentNumber::next('opening_balance', 'OB-', OpeningBalance::query()->count()))
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
             Forms\Components\DatePicker::make('as_of_date')->label('As of (cutover date)')->default(now())->required(),
             Forms\Components\TextInput::make('notes')->maxLength(255)->columnSpanFull(),

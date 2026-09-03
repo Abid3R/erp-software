@@ -10,6 +10,7 @@ use App\Filament\Resources\QuotationResource\Pages;
 use App\Models\Product;
 use App\Models\Quotation;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -33,7 +34,7 @@ class QuotationResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('number')->required()->maxLength(32)
-                ->default(fn (): string => 'QT-'.str_pad((string) (Quotation::query()->count() + 1), 4, '0', STR_PAD_LEFT))
+                ->default(fn (): string => DocumentNumber::next('quotation', 'QT-', Quotation::query()->count()))
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
             Forms\Components\Select::make('customer_id')->relationship('customer', 'name')->searchable()->preload()->required(),
             Forms\Components\Select::make('warehouse_id')->relationship('warehouse', 'name')->searchable()->preload()->required(),

@@ -11,6 +11,7 @@ use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\PurchaseReturnResource\Pages;
 use App\Models\PurchaseReturn;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -34,7 +35,7 @@ class PurchaseReturnResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('number')->required()->maxLength(32)
-                ->default(fn (): string => 'PR-'.str_pad((string) (PurchaseReturn::query()->count() + 1), 4, '0', STR_PAD_LEFT))
+                ->default(fn (): string => DocumentNumber::next('purchase_return', 'PR-', PurchaseReturn::query()->count()))
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
             Forms\Components\Select::make('supplier_id')->relationship('supplier', 'name')->searchable()->preload()->required(),
             Forms\Components\Select::make('warehouse_id')->relationship('warehouse', 'name')->searchable()->preload()->required(),

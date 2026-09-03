@@ -13,6 +13,7 @@ use App\Filament\Resources\SalesOrderResource\Pages;
 use App\Filament\Resources\SalesOrderResource\RelationManagers\LinesRelationManager;
 use App\Models\SalesOrder;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -55,7 +56,7 @@ class SalesOrderResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('so_number')->label('SO #')->required()->maxLength(32)
-                ->default(fn (): string => 'SO-'.str_pad((string) (SalesOrder::query()->count() + 1), 4, '0', STR_PAD_LEFT))
+                ->default(fn (): string => DocumentNumber::next('sales_order', 'SO-', SalesOrder::query()->count()))
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
             Forms\Components\Select::make('customer_id')->relationship('customer', 'name')->searchable()->preload()->required(),
             Forms\Components\Select::make('warehouse_id')->relationship('warehouse', 'name')->searchable()->preload()->required(),

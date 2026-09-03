@@ -12,6 +12,7 @@ use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\StockAdjustmentResource\Pages;
 use App\Models\StockAdjustment;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -35,7 +36,7 @@ class StockAdjustmentResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('number')->required()->maxLength(32)
-                ->default(fn (): string => 'ADJ-'.str_pad((string) (StockAdjustment::query()->count() + 1), 4, '0', STR_PAD_LEFT))
+                ->default(fn (): string => DocumentNumber::next('stock_adjustment', 'ADJ-', StockAdjustment::query()->count()))
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
             Forms\Components\Select::make('warehouse_id')->relationship('warehouse', 'name')->searchable()->preload()->required(),
             Forms\Components\DatePicker::make('adjustment_date')->default(now())->required(),

@@ -5,6 +5,7 @@ namespace App\Actions\Crm;
 use App\Enums\LeadStatus;
 use App\Models\Customer;
 use App\Models\Lead;
+use App\Support\DocumentNumber;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -24,7 +25,7 @@ class ConvertLead
             $customer = Customer::create([
                 'company_id' => $lead->company_id,
                 'name' => $lead->company_name ?: $lead->name,
-                'code' => 'CUST-'.str_pad((string) (Customer::query()->count() + 1), 4, '0', STR_PAD_LEFT),
+                'code' => DocumentNumber::next('customer', 'CUST-', Customer::query()->count()),
                 'email' => $lead->email,
                 'phone' => $lead->phone,
                 'is_active' => true,

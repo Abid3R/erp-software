@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Enums\Gender;
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompany;
 use App\Models\Concerns\HasDocuments;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Employee extends Model
 {
+    use Auditable;
     use BelongsToCompany;
     use HasDocuments;
 

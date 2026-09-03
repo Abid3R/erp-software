@@ -10,6 +10,7 @@ use App\Filament\Resources\PurchaseRequisitionResource\Pages;
 use App\Models\PurchaseRequisition;
 use App\Models\Warehouse;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -33,7 +34,7 @@ class PurchaseRequisitionResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('number')->required()->maxLength(32)
-                ->default(fn (): string => 'REQ-'.str_pad((string) (PurchaseRequisition::query()->count() + 1), 4, '0', STR_PAD_LEFT))
+                ->default(fn (): string => DocumentNumber::next('purchase_requisition', 'REQ-', PurchaseRequisition::query()->count()))
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
             Forms\Components\Select::make('department_id')->relationship('department', 'name')->searchable()->preload(),
             Forms\Components\DatePicker::make('needed_by'),

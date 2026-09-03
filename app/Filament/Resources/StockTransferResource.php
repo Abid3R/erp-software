@@ -10,6 +10,7 @@ use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\StockTransferResource\Pages;
 use App\Models\StockTransfer;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -33,7 +34,7 @@ class StockTransferResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('number')->required()->maxLength(32)
-                ->default(fn (): string => 'TRF-'.str_pad((string) (StockTransfer::query()->count() + 1), 4, '0', STR_PAD_LEFT))
+                ->default(fn (): string => DocumentNumber::next('stock_transfer', 'TRF-', StockTransfer::query()->count()))
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
             Forms\Components\Select::make('from_warehouse_id')->label('From warehouse')
                 ->relationship('fromWarehouse', 'name')->searchable()->preload()->required()

@@ -14,6 +14,7 @@ use App\Filament\Resources\DeliveryOrderResource\Pages;
 use App\Models\DeliveryOrder;
 use App\Models\SalesOrder;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -38,8 +39,12 @@ class DeliveryOrderResource extends Resource
         return $form->schema([
             Forms\Components\Section::make('Delivery information')->columns(2)->schema([
                 Forms\Components\TextInput::make('number')->label('DO No.')->required()->maxLength(32)
-                    ->default(fn (): string => 'DO-'.now()->format('Y').'-'
-                        .str_pad((string) (DeliveryOrder::query()->whereYear('created_at', now()->year)->count() + 1), 5, '0', STR_PAD_LEFT))
+                    ->default(fn (): string => DocumentNumber::next(
+                        'delivery_order:'.now()->format('Y'),
+                        'DO-'.now()->format('Y').'-',
+                        DeliveryOrder::query()->whereYear('created_at', now()->year)->count(),
+                        5,
+                    ))
                     ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
                 Forms\Components\DatePicker::make('delivery_date')->default(now())->required(),
                 Forms\Components\Select::make('sales_order_id')->label('Sales order')

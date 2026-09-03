@@ -9,7 +9,8 @@ Route::get('/', function () {
 });
 
 // Print-optimized document views (browser-rendered → correct Bangla shaping).
-Route::middleware(['web', 'auth'])->prefix('print')->name('print.')->group(function () {
+// Throttled so document/PDF views can't be hammered (report rendering is costly).
+Route::middleware(['web', 'auth', 'throttle:120,1'])->prefix('print')->name('print.')->group(function () {
     Route::get('payment/{payment}', [PrintController::class, 'payment'])->name('payment');
     Route::get('journal/{journal}', [PrintController::class, 'journal'])->name('journal');
     Route::get('roster/{roster}', [PrintController::class, 'roster'])->name('roster');
@@ -28,6 +29,7 @@ Route::middleware(['web', 'auth'])->prefix('print')->name('print.')->group(funct
 });
 
 // DMS downloads — private files, authorised per company (see DocumentController).
-Route::middleware(['web', 'auth'])
+// Throttled to blunt bulk-exfiltration attempts.
+Route::middleware(['web', 'auth', 'throttle:60,1'])
     ->get('documents/{document}/download', [DocumentController::class, 'download'])
     ->name('documents.download');

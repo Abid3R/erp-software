@@ -7,6 +7,7 @@ use App\Filament\Resources\FixedAssetResource\Pages;
 use App\Filament\Resources\FixedAssetResource\RelationManagers\DepreciationEntriesRelationManager;
 use App\Models\FixedAsset;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -29,7 +30,7 @@ class FixedAssetResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('asset_code')->required()->maxLength(32)
-                ->default(fn (): string => 'FA-'.str_pad((string) (FixedAsset::query()->count() + 1), 4, '0', STR_PAD_LEFT))
+                ->default(fn (): string => DocumentNumber::next('fixed_asset', 'FA-', FixedAsset::query()->count()))
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
             Forms\Components\TextInput::make('name')->required()->maxLength(255),
             Forms\Components\TextInput::make('category')->maxLength(255),

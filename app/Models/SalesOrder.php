@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\SalesOrderStatus;
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompany;
 use App\Models\Concerns\HasDocuments;
 use Brick\Math\BigDecimal;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class SalesOrder extends Model
 {
+    use Auditable;
     use BelongsToCompany;
     use HasDocuments;
 

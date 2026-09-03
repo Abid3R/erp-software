@@ -12,6 +12,7 @@ use App\Models\Account;
 use App\Models\SupplierInvoice;
 use App\Models\TaxRate;
 use App\Support\CompanyContext;
+use App\Support\DocumentNumber;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -56,7 +57,7 @@ class SupplierInvoiceResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('number')->required()->maxLength(32)
-                ->default(fn (): string => 'SINV-'.str_pad((string) (SupplierInvoice::query()->count() + 1), 4, '0', STR_PAD_LEFT))
+                ->default(fn (): string => DocumentNumber::next('supplier_invoice', 'SINV-', SupplierInvoice::query()->count()))
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('company_id', app(CompanyContext::class)->currentId())),
             Forms\Components\Select::make('supplier_id')->relationship('supplier', 'name')->searchable()->preload()->required(),
             Forms\Components\Select::make('purchase_order_id')->label('Purchase order (optional)')

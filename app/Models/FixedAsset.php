@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\FixedAssetStatus;
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompany;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class FixedAsset extends Model
 {
+    use Auditable;
     use BelongsToCompany;
 
     /** @var list<string> */

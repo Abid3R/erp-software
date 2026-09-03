@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PayrollStatus;
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompany;
 use Brick\Math\BigDecimal;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +20,7 @@ use Illuminate\Support\Carbon;
  */
 class PayrollRun extends Model
 {
+    use Auditable;
     use BelongsToCompany;
 
     /** @var list<string> */

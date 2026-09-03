@@ -8,6 +8,7 @@ use App\Exceptions\SourcingException;
 use App\Models\PurchaseOrder;
 use App\Models\Rfq;
 use App\Models\RfqQuote;
+use App\Support\DocumentNumber;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -32,7 +33,7 @@ class AwardRfq
 
         return DB::transaction(function () use ($rfq, $supplierId, $quotes): PurchaseOrder {
             $po = PurchaseOrder::create([
-                'po_number' => 'PO-'.str_pad((string) (PurchaseOrder::query()->count() + 1), 4, '0', STR_PAD_LEFT),
+                'po_number' => DocumentNumber::next('purchase_order', 'PO-', PurchaseOrder::query()->count()),
                 'supplier_id' => $supplierId,
                 'warehouse_id' => $rfq->warehouse_id,
                 'order_date' => now()->format('Y-m-d'),
