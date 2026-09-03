@@ -4,10 +4,12 @@ namespace App\Filament\Widgets;
 
 use App\Enums\ApprovalStatus;
 use App\Filament\Resources\ApprovalRequestResource;
+use App\Filament\Resources\ManufacturingOrderResource;
 use App\Filament\Resources\PurchaseOrderResource;
 use App\Filament\Resources\SalesOrderResource;
 use App\Filament\Resources\StockResource;
 use App\Models\ApprovalRequest;
+use App\Models\ManufacturingOrder;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\SalesOrder;
@@ -44,6 +46,10 @@ class OperationalOverview extends BaseWidget
         $openSalesOrders = SalesOrder::query()
             ->where('company_id', $companyId)->whereIn('status', ['confirmed', 'partially_delivered'])->count();
         $lowStock = $this->countLowStock($companyId);
+        $openProduction = ManufacturingOrder::query()->where('company_id', $companyId)->open()->count();
+        $wipValue = (float) ManufacturingOrder::query()->where('company_id', $companyId)->open()->sum('wip_cost');
+        $symbol = config('erp.currency.symbol');
+        $precision = (int) config('erp.currency.precision', 2);
 
         return [
             Stat::make('Pending approvals', (string) $pendingApprovals)
@@ -69,6 +75,17 @@ class OperationalOverview extends BaseWidget
                 ->description('At or below reorder level')
                 ->icon('heroicon-o-exclamation-triangle')
                 ->url(StockResource::getUrl()),
+
+            Stat::make('Open production orders', (string) $openProduction)
+                ->color('info')
+                ->description('Draft, planned or in progress')
+                ->icon('heroicon-o-cog-6-tooth')
+                ->url(ManufacturingOrderResource::getUrl()),
+
+            Stat::make('WIP value', $symbol.number_format($wipValue, $precision))
+                ->color('gray')
+                ->description('Capitalised work in progress')
+                ->icon('heroicon-o-beaker'),
         ];
     }
 

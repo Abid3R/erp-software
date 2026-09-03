@@ -72,6 +72,22 @@ it('grounds the assistant on the active company snapshot', function () {
     });
 });
 
+it('strips markdown so replies read as clean plain text', function () {
+    $company = Company::factory()->create();
+    app(CompanyContext::class)->set($company);
+    config(['services.gemini.key' => 'test-key']);
+    fakeGemini("Hello! I am the assistant for **Demo Company Ltd.**\n* Inventory valuations\n* Outstanding receivables\n# Heading");
+
+    $reply = app(ErpAssistant::class)->reply([['role' => 'user', 'text' => 'hi']]);
+
+    expect($reply)->not->toContain('**')
+        ->and($reply)->not->toContain('* Inventory')
+        ->and($reply)->toContain('Demo Company Ltd.')
+        ->and($reply)->toContain('• Inventory valuations')
+        ->and($reply)->toContain('Heading')
+        ->and($reply)->not->toContain('# Heading');
+});
+
 it('replaces party names when sharing is disabled', function () {
     $company = Company::factory()->create();
     app(CompanyContext::class)->set($company);

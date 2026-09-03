@@ -4,6 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\BillOfMaterialsResource\Pages;
 use App\Models\BillOfMaterials;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -45,12 +47,28 @@ class BillOfMaterialsResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $money = fn (BigDecimal $v): string => config('erp.currency.symbol')
+            .number_format((float) (string) $v, (int) config('erp.currency.precision', 2));
+
         return $table
+            // Eager-load components (and their product) so the cost rollup below
+            // doesn't fire a query per row.
+            ->modifyQueryUsing(fn ($query) => $query->with('components.component'))
             ->columns([
                 Tables\Columns\TextColumn::make('product.name')->label('Finished product')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('name')->label('Version'),
                 Tables\Columns\TextColumn::make('output_quantity')->label('Output'),
                 Tables\Columns\TextColumn::make('components_count')->counts('components')->label('Components'),
+                Tables\Columns\TextColumn::make('material_cost')->label('Batch cost')->alignRight()
+                    ->state(fn (BillOfMaterials $record): string => $money($record->materialCost())),
+                Tables\Columns\TextColumn::make('unit_cost')->label('Cost / unit')->alignRight()
+                    ->state(function (BillOfMaterials $record) use ($money): string {
+                        $output = BigDecimal::of((string) $record->output_quantity);
+
+                        return $output->isPositive()
+                            ? $money($record->materialCost()->dividedBy($output, 4, RoundingMode::HALF_UP))
+                            : '—';
+                    }),
                 Tables\Columns\IconColumn::make('is_active')->boolean(),
             ])
             ->actions([Tables\Actions\EditAction::make()])

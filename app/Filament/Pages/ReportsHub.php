@@ -75,6 +75,9 @@ class ReportsHub extends Page
                 'icon' => 'heroicon-o-cog-6-tooth',
                 'color' => 'gray',
                 'items' => [
+                    ['label' => 'Production Register', 'description' => 'Finished goods produced in a period', 'url' => ProductionRegister::getUrl(), 'icon' => 'heroicon-o-clipboard-document-check'],
+                    ['label' => 'WIP Valuation', 'description' => 'Capitalised work-in-progress on open orders', 'url' => WipValuation::getUrl(), 'icon' => 'heroicon-o-beaker'],
+                    ['label' => 'MRP', 'description' => 'What to purchase or manufacture for demand', 'url' => Mrp::getUrl(), 'icon' => 'heroicon-o-square-3-stack-3d'],
                     ['label' => 'Manufacturing Orders', 'description' => 'Production orders and their status', 'url' => ManufacturingOrderResource::getUrl(), 'icon' => 'heroicon-o-wrench-screwdriver'],
                     ['label' => 'Bills of Materials', 'description' => 'Product recipes and component costs', 'url' => BillOfMaterialsResource::getUrl(), 'icon' => 'heroicon-o-beaker'],
                 ],

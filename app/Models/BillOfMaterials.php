@@ -38,6 +38,12 @@ class BillOfMaterials extends Model
         return $this->hasMany(BomComponent::class);
     }
 
+    /** @return HasMany<ManufacturingOrder, $this> */
+    public function manufacturingOrders(): HasMany
+    {
+        return $this->hasMany(ManufacturingOrder::class);
+    }
+
     /** Standard material cost of one BOM batch, from component list prices. */
     public function materialCost(): BigDecimal
     {

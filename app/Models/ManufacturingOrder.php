@@ -6,6 +6,7 @@ use App\Enums\ManufacturingOrderStatus;
 use App\Models\Concerns\BelongsToCompany;
 use App\Models\Concerns\HasDocuments;
 use Brick\Math\BigDecimal;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -77,6 +78,22 @@ class ManufacturingOrder extends Model
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /** Orders still open to be produced (draft, planned or in progress). */
+    public function scopeOpen(Builder $query): Builder
+    {
+        return $query->whereIn('status', [
+            ManufacturingOrderStatus::Draft->value,
+            ManufacturingOrderStatus::Planned->value,
+            ManufacturingOrderStatus::InProgress->value,
+        ]);
     }
 
     /** Inventory ledger movements (material issues + production receipts) for this order. */

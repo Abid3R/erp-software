@@ -8,6 +8,7 @@ use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
@@ -52,5 +53,17 @@ class Product extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    /** Bills of materials that produce this product. @return HasMany<BillOfMaterials, $this> */
+    public function billsOfMaterials(): HasMany
+    {
+        return $this->hasMany(BillOfMaterials::class);
+    }
+
+    /** Manufacturing orders producing this product. @return HasMany<ManufacturingOrder, $this> */
+    public function manufacturingOrders(): HasMany
+    {
+        return $this->hasMany(ManufacturingOrder::class);
     }
 }
