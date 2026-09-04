@@ -34,11 +34,13 @@ use App\Models\Holiday;
 use App\Models\Journal;
 use App\Models\Lead;
 use App\Models\LeaveRequest;
+use App\Models\Machine;
 use App\Models\Opportunity;
 use App\Models\ManufacturingOrder;
 use App\Models\LeaveType;
 use App\Models\Payment;
 use App\Models\PayrollRun;
+use App\Models\ProcessType;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequisition;
@@ -187,6 +189,25 @@ class DatabaseSeeder extends Seeder
 
             $category = Category::updateOrCreate(['name' => 'General'], ['is_active' => true]);
             $brand = Brand::updateOrCreate(['name' => 'Generic'], ['is_active' => true]);
+
+            // Textile process types (configurable) + a few demo machines.
+            foreach ([
+                ['KNIT', 'Knitting', true, true, false, true, 1],
+                ['DYE', 'Dyeing', true, true, true, true, 2],
+                ['FINISH', 'Finishing', true, true, false, true, 3],
+            ] as [$code, $name, $consumes, $produces, $labDip, $qc, $sort]) {
+                ProcessType::updateOrCreate(['code' => $code], [
+                    'name' => $name, 'consumes_material' => $consumes, 'produces_material' => $produces,
+                    'requires_lab_dip' => $labDip, 'requires_qc' => $qc, 'sort' => $sort, 'is_active' => true,
+                ]);
+            }
+            foreach ([
+                ['KNIT-01', 'Circular Knitting Machine 1', 'knitting', 450],
+                ['DYE-01', 'Dyeing Machine 1', 'dyeing', 800],
+                ['FIN-01', 'Compacting Machine 1', 'finishing', 350],
+            ] as [$code, $name, $type, $hourly]) {
+                Machine::firstOrCreate(['code' => $code], ['name' => $name, 'type' => $type, 'hourly_cost' => $hourly, 'is_active' => true]);
+            }
 
             $items = [
                 ['A4 Paper Ream', 'PAP-A4', 320.00, 420.00, 100],

@@ -9,6 +9,7 @@ use Brick\Math\BigDecimal;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
@@ -101,5 +102,11 @@ class ManufacturingOrder extends Model
     public function inventoryTransactions(): MorphMany
     {
         return $this->morphMany(InventoryTransaction::class, 'reference');
+    }
+
+    /** Textile process orders (knitting, dyeing, finishing, …) under this order. @return HasMany<ProcessOrder, $this> */
+    public function processOrders(): HasMany
+    {
+        return $this->hasMany(ProcessOrder::class);
     }
 }

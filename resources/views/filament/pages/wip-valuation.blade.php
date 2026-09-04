@@ -12,7 +12,8 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b text-left text-gray-500">
-                            <th class="py-2 pr-3">MO #</th>
+                            <th class="py-2 pr-3">Stage</th>
+                            <th class="py-2 px-3">Ref #</th>
                             <th class="py-2 px-3">SKU</th>
                             <th class="py-2 px-3">Product</th>
                             <th class="py-2 px-3 text-right">Planned</th>
@@ -24,7 +25,8 @@
                     <tbody>
                         @foreach ($valuation['rows'] as $row)
                             <tr class="border-b">
-                                <td class="py-2 pr-3">{{ $row['reference'] }}</td>
+                                <td class="py-2 pr-3">{{ $row['type'] }}</td>
+                                <td class="py-2 px-3">{{ $row['reference'] }}</td>
                                 <td class="py-2 px-3">{{ $row['sku'] }}</td>
                                 <td class="py-2 px-3">{{ $row['product'] }}</td>
                                 <td class="py-2 px-3 text-right">{{ $this->qty($row['planned']) }}</td>
@@ -34,7 +36,7 @@
                             </tr>
                         @endforeach
                         <tr class="border-t-2 font-semibold">
-                            <td class="py-2 pr-3" colspan="6">Total WIP value</td>
+                            <td class="py-2 pr-3" colspan="7">Total WIP value</td>
                             <td class="py-2 px-3 text-right">{{ $this->money($valuation['total']) }}</td>
                         </tr>
                     </tbody>

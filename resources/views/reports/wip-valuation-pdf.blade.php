@@ -12,7 +12,8 @@
     <table>
         <thead>
             <tr>
-                <th>MO #</th>
+                <th>Stage</th>
+                <th>Ref #</th>
                 <th>SKU</th>
                 <th>Product</th>
                 <th class="num">Planned</th>
@@ -24,6 +25,7 @@
         <tbody>
             @foreach ($valuation['rows'] as $row)
                 <tr>
+                    <td>{{ $row['type'] }}</td>
                     <td>{{ $row['reference'] }}</td>
                     <td>{{ $row['sku'] }}</td>
                     <td>{{ $row['product'] }}</td>
@@ -34,7 +36,7 @@
                 </tr>
             @endforeach
             <tr class="total">
-                <td colspan="6">Total WIP value</td>
+                <td colspan="7">Total WIP value</td>
                 <td class="num">{{ $money($valuation['total']) }}</td>
             </tr>
         </tbody>

@@ -75,12 +75,12 @@ class WipValuation extends Page
 
         $valuation = $this->getValuation();
         $rows = array_map(fn (array $r): array => [
-            $r['reference'], $r['sku'], $r['product'], $r['planned'], $r['produced'], $r['status'], $r['wip'],
+            $r['type'], $r['reference'], $r['sku'], $r['product'], $r['planned'], $r['produced'], $r['status'], $r['wip'],
         ], $valuation['rows']);
-        $rows[] = ['', '', '', '', '', 'Total', $valuation['total']];
+        $rows[] = ['', '', '', '', '', '', 'Total', $valuation['total']];
 
         return CsvExport::stream(
-            ['MO #', 'SKU', 'Product', 'Planned', 'Produced', 'Status', 'WIP value (BDT)'],
+            ['Stage', 'Ref #', 'SKU', 'Product', 'Planned', 'Produced', 'Status', 'WIP value (BDT)'],
             $rows,
             "wip-valuation-{$company->code}.csv",
         );
