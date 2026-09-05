@@ -195,6 +195,9 @@ class DatabaseSeeder extends Seeder
                 ['KNIT', 'Knitting', true, true, false, true, 1],
                 ['DYE', 'Dyeing', true, true, true, true, 2],
                 ['FINISH', 'Finishing', true, true, false, true, 3],
+                ['WASH', 'Washing', true, true, false, true, 4],
+                ['COMP', 'Compacting', true, true, false, true, 5],
+                ['STEN', 'Stentering', true, true, false, true, 6],
             ] as [$code, $name, $consumes, $produces, $labDip, $qc, $sort]) {
                 ProcessType::updateOrCreate(['code' => $code], [
                     'name' => $name, 'consumes_material' => $consumes, 'produces_material' => $produces,
@@ -259,6 +262,7 @@ class DatabaseSeeder extends Seeder
                 ['5300', 'Depreciation Expense', AccountType::Expense],
                 ['5400', 'Salary Expense', AccountType::Expense],
                 ['2300', 'Employee Payable (Salaries)', AccountType::Liability],
+                ['2400', 'Accrued Production Overhead', AccountType::Liability],
             ];
 
             foreach ($coa as [$code, $accountName, $type]) {

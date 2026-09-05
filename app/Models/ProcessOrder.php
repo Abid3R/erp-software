@@ -149,6 +149,12 @@ class ProcessOrder extends Model
         return $this->morphMany(InventoryTransaction::class, 'reference');
     }
 
+    /** QC inspections recorded against this order. @return MorphMany<QualityInspection, $this> */
+    public function qualityInspections(): MorphMany
+    {
+        return $this->morphMany(QualityInspection::class, 'inspectable');
+    }
+
     /** @return BelongsTo<User, $this> */
     public function createdBy(): BelongsTo
     {

@@ -84,6 +84,12 @@ class NotificationSettings extends Page implements HasForms
                             ->helperText('Alert inventory and purchasing when products reach or fall below their reorder level.')
                             ->inline(false)
                             ->default(true),
+
+                        Forms\Components\Toggle::make('production_alerts_enabled')
+                            ->label('Production alerts')
+                            ->helperText('Alert production and management when process orders are waiting at the QC gate.')
+                            ->inline(false)
+                            ->default(true),
                     ])->columns(1),
             ])
             ->statePath('data');
@@ -116,10 +122,11 @@ class NotificationSettings extends Page implements HasForms
 
                     $low = app(SendLowStockAlerts::class)->forCompany($companyId);
                     $overdue = app(SendOverdueInvoiceAlerts::class)->forCompany($companyId);
+                    $production = app(\App\Actions\Notifications\SendProductionAlerts::class)->forCompany($companyId);
 
                     Notification::make()
                         ->title('Alerts evaluated')
-                        ->body("Low-stock products: {$low}. Overdue customers: {$overdue}.")
+                        ->body("Low-stock products: {$low}. Overdue customers: {$overdue}. Awaiting QC: {$production}.")
                         ->success()
                         ->send();
                 }),

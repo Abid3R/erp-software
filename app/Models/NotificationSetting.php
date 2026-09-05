@@ -21,7 +21,7 @@ class NotificationSetting extends Model
     /** @var list<string> */
     protected $fillable = [
         'company_id', 'leave_approvals_enabled', 'overdue_invoices_enabled',
-        'low_stock_enabled', 'overdue_days',
+        'low_stock_enabled', 'production_alerts_enabled', 'overdue_days',
     ];
 
     /** @return array<string, string> */
@@ -31,6 +31,7 @@ class NotificationSetting extends Model
             'leave_approvals_enabled' => 'boolean',
             'overdue_invoices_enabled' => 'boolean',
             'low_stock_enabled' => 'boolean',
+            'production_alerts_enabled' => 'boolean',
             'overdue_days' => 'integer',
         ];
     }

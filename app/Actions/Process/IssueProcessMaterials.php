@@ -39,7 +39,13 @@ class IssueProcessMaterials
             throw ProcessException::alreadyIssued();
         }
 
-        $order->loadMissing('inputs.product', 'warehouse');
+        $order->loadMissing('inputs.product', 'warehouse', 'processType');
+
+        // Dyeing (and any lab-dip-gated process) may not run without an approved colour.
+        if ($order->processType?->requires_lab_dip && $order->lab_dip_id === null) {
+            throw ProcessException::labDipRequired();
+        }
+
         if ($order->inputs->isEmpty()) {
             throw ProcessException::noInputs();
         }

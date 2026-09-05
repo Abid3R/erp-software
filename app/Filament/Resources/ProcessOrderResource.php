@@ -2,15 +2,17 @@
 
 namespace App\Filament\Resources;
 
-use App\Actions\Process\CompleteProcessOrder;
 use App\Actions\Process\IssueProcessMaterials;
+use App\Actions\Process\RecordProcessCosts;
 use App\Actions\Process\RecordProcessProduction;
+use App\Actions\Process\RecordQualityInspection;
 use App\Enums\ProcessOrderStatus;
 use App\Exceptions\InsufficientStockException;
 use App\Exceptions\PostingException;
 use App\Exceptions\ProcessException;
 use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\ProcessOrderResource\Pages;
+use App\Models\Batch;
 use App\Models\LabDip;
 use App\Models\ProcessOrder;
 use App\Models\ProcessType;
@@ -59,6 +61,8 @@ class ProcessOrderResource extends Resource
                     ->searchable()
                     ->helperText('Required for dyeing — pick a customer/internally approved colour.')
                     ->visible(fn (Forms\Get $get): bool => $get('process_type_id') !== null
+                        && (bool) ProcessType::query()->whereKey($get('process_type_id'))->value('requires_lab_dip'))
+                    ->required(fn (Forms\Get $get): bool => $get('process_type_id') !== null
                         && (bool) ProcessType::query()->whereKey($get('process_type_id'))->value('requires_lab_dip')),
                 Forms\Components\Select::make('warehouse_id')
                     ->relationship('warehouse', 'name')->searchable()->preload()->required(),
@@ -67,21 +71,32 @@ class ProcessOrderResource extends Resource
                     ->helperText('e.g. grey fabric, dyed fabric, finished fabric.'),
                 Forms\Components\TextInput::make('planned_quantity')->numeric()->minValue(0.0001)->default(1)->required(),
                 Forms\Components\Select::make('manufacturing_order_id')->label('Manufacturing order (optional)')
-                    ->relationship('manufacturingOrder', 'reference')->searchable()->preload(),
+                    ->relationship('manufacturingOrder', 'reference')
+                    ->getOptionLabelFromRecordUsing(fn ($record): string => (string) ($record->reference ?? '#'.$record->getKey()))
+                    ->searchable()->preload(),
                 Forms\Components\Select::make('machine_id')
-                    ->relationship('machine', 'name')->searchable()->preload(),
+                    ->relationship('machine', 'name')
+                    ->getOptionLabelFromRecordUsing(fn ($record): string => (string) ($record->name ?? $record->code ?? '#'.$record->getKey()))
+                    ->searchable()->preload(),
                 Forms\Components\Select::make('operator_id')
-                    ->relationship('operator', 'employee_code')->searchable()->preload(),
+                    ->relationship('operator', 'employee_code')
+                    ->getOptionLabelFromRecordUsing(fn ($record): string => (string) ($record->employee_code
+                        ?? trim(($record->first_name ?? '').' '.($record->last_name ?? ''))
+                        ?: '#'.$record->getKey()))
+                    ->searchable()->preload(),
                 Forms\Components\TextInput::make('notes')->maxLength(255)->columnSpanFull(),
             ]),
             Forms\Components\Section::make('Inputs (materials to consume)')->schema([
                 Forms\Components\Repeater::make('inputs')->relationship()->schema([
                     Forms\Components\Select::make('product_id')->label('Material')
-                        ->relationship('product', 'name')->searchable()->preload()->required(),
+                        ->relationship('product', 'name')->searchable()->preload()->required()->live(),
                     Forms\Components\TextInput::make('planned_quantity')->numeric()->minValue(0.0001)->required(),
                     Forms\Components\Select::make('batch_id')->label('Batch (optional)')
-                        ->relationship('batch', 'batch_number')->searchable()->preload()
-                        ->helperText('Link the specific lot consumed, for traceability.'),
+                        ->options(fn (Forms\Get $get): array => $get('product_id')
+                            ? Batch::query()->where('product_id', $get('product_id'))->orderByDesc('id')->pluck('batch_number', 'id')->all()
+                            : [])
+                        ->searchable()
+                        ->helperText('Link the specific lot consumed (e.g. grey-fabric batch), for traceability.'),
                 ])->columns(3)->addActionLabel('Add material')->defaultItems(1)->columnSpanFull(),
             ]),
         ])->columns(1);
@@ -125,6 +140,29 @@ class ProcessOrderResource extends Resource
                         }
                     }),
 
+                Tables\Actions\Action::make('addCosts')->label('Add costs')
+                    ->icon('heroicon-o-currency-bangladeshi')->color('gray')
+                    ->visible(fn (ProcessOrder $record): bool => $record->status === ProcessOrderStatus::InProgress)
+                    ->modalHeading('Conversion costs (capitalised into WIP)')
+                    ->form([
+                        Forms\Components\TextInput::make('labour')->label('Labour cost')->numeric()->minValue(0)->default(0)
+                            ->prefix(config('erp.currency.symbol')),
+                        Forms\Components\TextInput::make('machine_hours')->label('Machine hours')->numeric()->minValue(0)->default(0)
+                            ->helperText('Costed at the machine hourly rate.'),
+                        Forms\Components\TextInput::make('utility')->label('Utilities / electricity')->numeric()->minValue(0)->default(0)
+                            ->prefix(config('erp.currency.symbol')),
+                        Forms\Components\TextInput::make('overhead')->label('Other overhead')->numeric()->minValue(0)->default(0)
+                            ->prefix(config('erp.currency.symbol')),
+                    ])
+                    ->action(function (ProcessOrder $record, array $data): void {
+                        try {
+                            app(RecordProcessCosts::class)->handle($record, $data);
+                            Notification::make()->title('Costs added')->body('Conversion costs capitalised into WIP.')->success()->send();
+                        } catch (ProcessException|\App\Exceptions\PostingException $e) {
+                            Notification::make()->title('Cannot add costs')->body($e->getMessage())->danger()->send();
+                        }
+                    }),
+
                 Tables\Actions\Action::make('produce')->label('Record production')
                     ->icon('heroicon-o-plus-circle')->color('info')
                     ->visible(fn (ProcessOrder $record): bool => $record->status === ProcessOrderStatus::InProgress)
@@ -145,17 +183,30 @@ class ProcessOrderResource extends Resource
                         }
                     }),
 
-                Tables\Actions\Action::make('passQc')->label('Pass QC')
+                Tables\Actions\Action::make('recordQc')->label('Record QC')
                     ->icon('heroicon-o-check-badge')->color('success')
                     ->visible(fn (ProcessOrder $record): bool => $record->status === ProcessOrderStatus::Qc)
-                    ->requiresConfirmation()
-                    ->modalDescription('Marks QC as passed and completes the order.')
-                    ->action(function (ProcessOrder $record): void {
+                    ->modalHeading('Quality inspection')
+                    ->form(fn (ProcessOrder $record): array => [
+                        Forms\Components\TextInput::make('inspected')->label('Inspected quantity')
+                            ->numeric()->minValue(0)->default((float) (string) $record->produced_quantity)->required(),
+                        Forms\Components\TextInput::make('passed')->label('Passed quantity')
+                            ->numeric()->minValue(0)->default((float) (string) $record->produced_quantity)->required(),
+                        Forms\Components\TextInput::make('rejected')->label('Rejected quantity')
+                            ->numeric()->minValue(0)->maxValue((float) (string) $record->produced_quantity)->default(0)->required()
+                            ->helperText('Rejected quantity is removed from available stock.'),
+                        Forms\Components\Textarea::make('defects')->rows(2),
+                        Forms\Components\Textarea::make('remarks')->rows(2),
+                    ])
+                    ->action(function (ProcessOrder $record, array $data): void {
                         try {
-                            app(CompleteProcessOrder::class)->handle($record);
-                            Notification::make()->title('Order completed')->body('QC passed.')->success()->send();
-                        } catch (ProcessException $e) {
-                            Notification::make()->title('Cannot complete')->body($e->getMessage())->danger()->send();
+                            app(RecordQualityInspection::class)->handle(
+                                $record, (string) $data['inspected'], (string) $data['passed'],
+                                (string) ($data['rejected'] ?? '0'), $data['defects'] ?? null, $data['remarks'] ?? null,
+                            );
+                            Notification::make()->title('QC recorded')->body('Order completed; any rejects removed from stock.')->success()->send();
+                        } catch (ProcessException|\App\Exceptions\PostingException $e) {
+                            Notification::make()->title('Cannot record QC')->body($e->getMessage())->danger()->send();
                         }
                     }),
 

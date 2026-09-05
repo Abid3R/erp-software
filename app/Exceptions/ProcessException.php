@@ -55,4 +55,14 @@ class ProcessException extends RuntimeException
     {
         return new self('Only an order awaiting QC can be passed.');
     }
+
+    public static function labDipRequired(): self
+    {
+        return new self('This process requires an approved lab dip. Select one before issuing materials.');
+    }
+
+    public static function rejectedExceedsProduced(): self
+    {
+        return new self('Rejected quantity cannot exceed the quantity produced.');
+    }
 }
