@@ -98,6 +98,16 @@ class SalesOrderResource extends Resource
                         $record->update(['status' => SalesOrderStatus::Confirmed]);
                         Notification::make()->title('Sales order confirmed')->success()->send();
                     }),
+                // Create a Proforma Invoice from this order (export workflow, optional).
+                Tables\Actions\Action::make('createPi')->label('Create PI')->icon('heroicon-o-document-text')->color('gray')
+                    ->visible(fn (SalesOrder $record): bool => in_array($record->status, [SalesOrderStatus::Confirmed, SalesOrderStatus::PartiallyDelivered], true))
+                    ->requiresConfirmation()
+                    ->modalDescription('Creates a draft proforma invoice carrying this order’s customer, warehouse and lines. No stock or ledger impact.')
+                    ->action(function (SalesOrder $record): void {
+                        $pi = app(\App\Actions\Export\CreateProformaFromSalesOrder::class)->handle($record);
+                        Notification::make()->title('Proforma invoice '.$pi->number.' created')
+                            ->body('Open Export → Proforma Invoices to review it.')->success()->send();
+                    }),
                 // Create a Delivery Order when the company requires the DO workflow.
                 Tables\Actions\Action::make('createDo')->label('Create DO')->icon('heroicon-o-truck')->color('success')
                     ->visible(fn (SalesOrder $record): bool => $record->status->isDeliverable() && self::requiresDeliveryOrder())

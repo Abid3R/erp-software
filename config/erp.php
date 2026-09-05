@@ -73,6 +73,31 @@ return [
         'salary_expense' => '5400',
         'employee_payable' => '2300',
         'opening_balance_equity' => '3900',
+        // Conversion costs (labour, machine, utilities, overhead) capitalised into
+        // WIP during production costing are credited here until settled.
+        'accrued_overhead' => '2400',
+    ],
+
+    // Sales & Export workflow. Values are configurable, never hard-coded in the
+    // documents — a company can trim or extend these lists via the environment.
+    'export' => [
+        // Incoterms offered on PI / Commercial Invoice / Shipment.
+        'incoterms' => array_values(array_filter(array_map('trim', explode(',', (string) env(
+            'EXPORT_INCOTERMS',
+            'FOB,CFR,CIF,EXW,FCA,CPT,CIP,DAP,DPU,DDP',
+        ))))),
+        'default_incoterm' => env('EXPORT_DEFAULT_INCOTERM', 'FOB'),
+        // Payment-term presets offered on PI / LC / Commercial Invoice.
+        'payment_terms' => array_values(array_filter(array_map('trim', explode('|', (string) env(
+            'EXPORT_PAYMENT_TERMS',
+            'At sight L/C|30 days L/C|60 days L/C|90 days L/C|Advance TT|30 days TT',
+        ))))),
+        // Currencies offered on export documents (base currency is always allowed).
+        'currencies' => array_values(array_filter(array_map('trim', explode(',', (string) env(
+            'EXPORT_CURRENCIES',
+            'USD,EUR,GBP,BDT',
+        ))))),
+        'default_currency' => env('EXPORT_DEFAULT_CURRENCY', 'USD'),
     ],
 
 ];

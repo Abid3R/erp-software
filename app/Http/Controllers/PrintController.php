@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Domain\Hr\RosterGenerator;
 use App\Domain\Reporting\PartyStatement;
+use App\Models\CommercialInvoice;
 use App\Models\Customer;
 use App\Models\DeliveryOrder;
 use App\Models\Expense;
 use App\Models\GoodsReceipt;
+use App\Models\PackingList;
+use App\Models\ProformaInvoice;
 use App\Models\Journal;
 use App\Models\Payment;
 use App\Models\Payslip;
@@ -148,6 +151,39 @@ class PrintController extends Controller
             'do' => $deliveryOrder->load('lines.product', 'customer', 'warehouse', 'salesOrder', 'company'),
             'company' => $deliveryOrder->company,
             'setting' => $deliveryOrder->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function proformaInvoice(ProformaInvoice $proformaInvoice): View
+    {
+        $this->authorizeCompany((int) $proformaInvoice->company_id);
+
+        return view('print.proforma-invoice', [
+            'pi' => $proformaInvoice->load('lines.product', 'customer', 'salesOrder', 'letterOfCredit', 'taxRate', 'company'),
+            'company' => $proformaInvoice->company,
+            'setting' => $proformaInvoice->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function commercialInvoice(CommercialInvoice $commercialInvoice): View
+    {
+        $this->authorizeCompany((int) $commercialInvoice->company_id);
+
+        return view('print.commercial-invoice', [
+            'ci' => $commercialInvoice->load('lines.product', 'customer', 'proformaInvoice', 'letterOfCredit', 'deliveryOrder', 'taxRate', 'company'),
+            'company' => $commercialInvoice->company,
+            'setting' => $commercialInvoice->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function packingList(PackingList $packingList): View
+    {
+        $this->authorizeCompany((int) $packingList->company_id);
+
+        return view('print.packing-list', [
+            'pl' => $packingList->load('lines.product', 'customer', 'commercialInvoice', 'shipment', 'company'),
+            'company' => $packingList->company,
+            'setting' => $packingList->company?->reportSettingOrNew(),
         ]);
     }
 

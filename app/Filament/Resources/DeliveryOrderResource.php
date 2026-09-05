@@ -87,6 +87,18 @@ class DeliveryOrderResource extends Resource
                 Forms\Components\TextInput::make('customer_reference')->label('Customer reference')->maxLength(128),
                 Forms\Components\TextInput::make('received_by')->maxLength(128),
             ])->collapsed(false),
+            Forms\Components\Section::make('Export references (optional)')->columns(2)->collapsed()
+                ->description('Link this delivery to its export documents. Leave blank for local deliveries.')
+                ->schema([
+                    Forms\Components\Select::make('proforma_invoice_id')->label('Proforma invoice')
+                        ->relationship('proformaInvoice', 'number')->searchable()->preload(),
+                    Forms\Components\Select::make('letter_of_credit_id')->label('Letter of credit')
+                        ->relationship('letterOfCredit', 'number')->searchable()->preload(),
+                    Forms\Components\Select::make('commercial_invoice_id')->label('Commercial invoice')
+                        ->relationship('commercialInvoice', 'number')->searchable()->preload(),
+                    Forms\Components\Select::make('export_shipment_id')->label('Shipment')
+                        ->relationship('shipment', 'number')->searchable()->preload(),
+                ]),
             Forms\Components\Section::make('Items')->schema([
                 Forms\Components\Repeater::make('lines')->relationship()->schema([
                     Forms\Components\Hidden::make('sales_order_line_id'),

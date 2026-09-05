@@ -22,6 +22,9 @@ Route::middleware(['web', 'auth', 'throttle:120,1'])->prefix('print')->name('pri
     Route::get('supplier-invoice/{supplierInvoice}', [PrintController::class, 'supplierInvoice'])->name('supplier-invoice');
     Route::get('goods-receipt/{goodsReceipt}', [PrintController::class, 'goodsReceipt'])->name('goods-receipt');
     Route::get('delivery-order/{deliveryOrder}', [PrintController::class, 'deliveryOrder'])->name('delivery-order');
+    Route::get('proforma-invoice/{proformaInvoice}', [PrintController::class, 'proformaInvoice'])->name('proforma-invoice');
+    Route::get('commercial-invoice/{commercialInvoice}', [PrintController::class, 'commercialInvoice'])->name('commercial-invoice');
+    Route::get('packing-list/{packingList}', [PrintController::class, 'packingList'])->name('packing-list');
     Route::get('customer-statement/{customer}', [PrintController::class, 'customerStatement'])->name('customer-statement');
     Route::get('supplier-statement/{supplier}', [PrintController::class, 'supplierStatement'])->name('supplier-statement');
     Route::get('stock-adjustment/{stockAdjustment}', [PrintController::class, 'stockAdjustment'])->name('stock-adjustment');
