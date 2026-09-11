@@ -8,8 +8,13 @@ use App\Models\CommercialInvoice;
 use App\Models\Customer;
 use App\Models\DeliveryOrder;
 use App\Models\Expense;
+use App\Models\DyeingSpecification;
 use App\Models\GoodsReceipt;
+use App\Models\LabDip;
 use App\Models\PackingList;
+use App\Models\ProcessOrder;
+use App\Models\ProductionPlan;
+use App\Models\ProductSpecification;
 use App\Models\ProformaInvoice;
 use App\Models\Journal;
 use App\Models\Payment;
@@ -184,6 +189,78 @@ class PrintController extends Controller
             'pl' => $packingList->load('lines.product', 'customer', 'commercialInvoice', 'shipment', 'company'),
             'company' => $packingList->company,
             'setting' => $packingList->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function processJobCard(ProcessOrder $processOrder): View
+    {
+        $this->authorizeCompany((int) $processOrder->company_id);
+
+        return view('print.process-job-card', [
+            'order' => $processOrder->load([
+                'processType', 'machine', 'operator', 'warehouse', 'outputProduct',
+                'labDip', 'salesOrder', 'productionPlan', 'inputs.product', 'company',
+            ]),
+            'company' => $processOrder->company,
+            'setting' => $processOrder->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function subcontractWorkOrder(ProcessOrder $processOrder): View
+    {
+        $this->authorizeCompany((int) $processOrder->company_id);
+
+        return view('print.subcontract-work-order', [
+            'order' => $processOrder->load([
+                'processType', 'subcontractor', 'serviceItem', 'warehouse', 'outputProduct',
+                'salesOrder', 'inputs.product', 'company',
+            ]),
+            'company' => $processOrder->company,
+            'setting' => $processOrder->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function productionPlan(ProductionPlan $productionPlan): View
+    {
+        $this->authorizeCompany((int) $productionPlan->company_id);
+
+        return view('print.production-plan', [
+            'plan' => $productionPlan->load('customer', 'product', 'salesOrder', 'stages.processType', 'stages.machine', 'company'),
+            'company' => $productionPlan->company,
+            'setting' => $productionPlan->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function fabricSpecification(ProductSpecification $productSpecification): View
+    {
+        $this->authorizeCompany((int) $productSpecification->company_id);
+
+        return view('print.fabric-specification', [
+            'spec' => $productSpecification->load('product', 'company'),
+            'company' => $productSpecification->company,
+            'setting' => $productSpecification->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function dyeingSpecification(DyeingSpecification $dyeingSpecification): View
+    {
+        $this->authorizeCompany((int) $dyeingSpecification->company_id);
+
+        return view('print.dyeing-specification', [
+            'spec' => $dyeingSpecification->load('product', 'consumptions.product', 'company'),
+            'company' => $dyeingSpecification->company,
+            'setting' => $dyeingSpecification->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function labDip(LabDip $labDip): View
+    {
+        $this->authorizeCompany((int) $labDip->company_id);
+
+        return view('print.lab-dip', [
+            'dip' => $labDip->load('customer', 'company'),
+            'company' => $labDip->company,
+            'setting' => $labDip->company?->reportSettingOrNew(),
         ]);
     }
 

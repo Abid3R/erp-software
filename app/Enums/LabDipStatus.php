@@ -16,6 +16,7 @@ enum LabDipStatus: string
     case SentToCustomer = 'sent_to_customer';
     case CustomerApproved = 'customer_approved';
     case Rejected = 'rejected';
+    case Cancelled = 'cancelled';
 
     public function label(): string
     {
@@ -31,7 +32,7 @@ enum LabDipStatus: string
             self::CustomerApproved => 'success',
             self::InternalApproved => 'info',
             self::Submitted, self::InLab, self::SentToCustomer => 'warning',
-            self::Rejected => 'danger',
+            self::Rejected, self::Cancelled => 'danger',
             self::Draft => 'gray',
         };
     }
@@ -45,7 +46,7 @@ enum LabDipStatus: string
     /** No further transitions expected. */
     public function isTerminal(): bool
     {
-        return in_array($this, [self::CustomerApproved, self::Rejected], true);
+        return in_array($this, [self::CustomerApproved, self::Rejected, self::Cancelled], true);
     }
 
     /** @return array<string, string> */

@@ -35,6 +35,21 @@ class Mrp extends Page
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('requisition')->label('Create purchase requisition')->icon('heroicon-o-clipboard-document-list')
+                ->color('success')->requiresConfirmation()
+                ->modalDescription('Creates a draft purchase requisition for the shortage (purchase) lines below, through the normal purchasing workflow.')
+                ->action(function (): void {
+                    $companyId = app(CompanyContext::class)->currentId();
+                    $req = $companyId ? app(\App\Actions\Purchasing\CreateRequisitionFromMrp::class)->handle($companyId) : null;
+                    if ($req === null) {
+                        \Filament\Notifications\Notification::make()->title('Nothing to purchase')
+                            ->body('No purchase shortages in the current plan.')->warning()->send();
+
+                        return;
+                    }
+                    \Filament\Notifications\Notification::make()->title('Requisition '.$req->number.' created')
+                        ->body('Open Purchasing → Requisitions to submit it.')->success()->send();
+                }),
             Action::make('pdf')->label('Download PDF')->icon('heroicon-o-arrow-down-tray')
                 ->action(fn (): Response => $this->downloadPdf()),
             Action::make('csv')->label('Export CSV')->icon('heroicon-o-table-cells')->color('gray')

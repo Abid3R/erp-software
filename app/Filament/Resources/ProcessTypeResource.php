@@ -21,7 +21,7 @@ class ProcessTypeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-adjustments-vertical';
 
-    protected static ?string $navigationGroup = 'Manufacturing';
+    protected static ?string $navigationGroup = 'Textile';
 
     protected static ?string $navigationLabel = 'Process Types';
 

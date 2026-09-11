@@ -20,7 +20,7 @@ class BatchResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-qr-code';
 
-    protected static ?string $navigationGroup = 'Manufacturing';
+    protected static ?string $navigationGroup = 'Textile';
 
     protected static ?string $navigationLabel = 'Batches';
 

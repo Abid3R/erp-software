@@ -20,7 +20,7 @@ class QualityInspectionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
-    protected static ?string $navigationGroup = 'Manufacturing';
+    protected static ?string $navigationGroup = 'Textile';
 
     protected static ?string $navigationLabel = 'Quality Inspections';
 

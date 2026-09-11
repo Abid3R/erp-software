@@ -47,7 +47,7 @@ class ProductionCostingReport extends Page implements HasForms
 
     public function reportHeaders(): array
     {
-        return ['Ref', 'Process', 'Product', 'Produced', 'Material', 'Labour', 'Machine', 'Utility', 'Overhead', 'Total', 'Unit cost'];
+        return ['Ref', 'Process', 'Product', 'Produced', 'Material', 'Labour', 'Machine', 'Utility', 'Overhead', 'Total', 'Unit cost', 'Std cost', 'Variance'];
     }
 
     public function reportRows(): array
@@ -65,18 +65,28 @@ class ProductionCostingReport extends Page implements HasForms
             ->with(['processType', 'outputProduct'])
             ->orderBy('created_at')
             ->get()
-            ->map(fn (ProcessOrder $o): array => [
-                $o->reference,
-                $o->processType?->name ?? '—',
-                $o->outputProduct?->name ?? '—',
-                $this->qty($o->produced_quantity),
-                $this->money($o->material_cost),
-                $this->money($o->labour_cost),
-                $this->money($o->machine_cost),
-                $this->money($o->utility_cost),
-                $this->money($o->overhead_cost),
-                $this->money($o->total_cost),
-                $this->money($o->output_unit_cost),
-            ])->all();
+            ->map(function (ProcessOrder $o): array {
+                // Standard vs actual: the product's standard cost against the actual unit cost.
+                $std = $o->outputProduct?->cost_price;
+                $variance = ($std !== null && (float) $std > 0)
+                    ? (string) \Brick\Math\BigDecimal::of($o->output_unit_cost)->minus($std)
+                    : null;
+
+                return [
+                    $o->reference,
+                    $o->processType?->name ?? '—',
+                    $o->outputProduct?->name ?? '—',
+                    $this->qty($o->produced_quantity),
+                    $this->money($o->material_cost),
+                    $this->money($o->labour_cost),
+                    $this->money($o->machine_cost),
+                    $this->money($o->utility_cost),
+                    $this->money($o->overhead_cost),
+                    $this->money($o->total_cost),
+                    $this->money($o->output_unit_cost),
+                    ($std !== null && (float) $std > 0) ? $this->money($std) : '—',
+                    $variance !== null ? $this->money($variance) : '—',
+                ];
+            })->all();
     }
 }

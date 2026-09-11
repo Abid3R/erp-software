@@ -25,6 +25,12 @@ Route::middleware(['web', 'auth', 'throttle:120,1'])->prefix('print')->name('pri
     Route::get('proforma-invoice/{proformaInvoice}', [PrintController::class, 'proformaInvoice'])->name('proforma-invoice');
     Route::get('commercial-invoice/{commercialInvoice}', [PrintController::class, 'commercialInvoice'])->name('commercial-invoice');
     Route::get('packing-list/{packingList}', [PrintController::class, 'packingList'])->name('packing-list');
+    Route::get('process-job-card/{processOrder}', [PrintController::class, 'processJobCard'])->name('process-job-card');
+    Route::get('subcontract-work-order/{processOrder}', [PrintController::class, 'subcontractWorkOrder'])->name('subcontract-work-order');
+    Route::get('production-plan/{productionPlan}', [PrintController::class, 'productionPlan'])->name('production-plan');
+    Route::get('fabric-specification/{productSpecification}', [PrintController::class, 'fabricSpecification'])->name('fabric-specification');
+    Route::get('lab-dip/{labDip}', [PrintController::class, 'labDip'])->name('lab-dip');
+    Route::get('dyeing-specification/{dyeingSpecification}', [PrintController::class, 'dyeingSpecification'])->name('dyeing-specification');
     Route::get('customer-statement/{customer}', [PrintController::class, 'customerStatement'])->name('customer-statement');
     Route::get('supplier-statement/{supplier}', [PrintController::class, 'supplierStatement'])->name('supplier-statement');
     Route::get('stock-adjustment/{stockAdjustment}', [PrintController::class, 'stockAdjustment'])->name('stock-adjustment');

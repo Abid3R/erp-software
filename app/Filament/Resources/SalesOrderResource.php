@@ -108,6 +108,16 @@ class SalesOrderResource extends Resource
                         Notification::make()->title('Proforma invoice '.$pi->number.' created')
                             ->body('Open Export → Proforma Invoices to review it.')->success()->send();
                     }),
+                // Generate a textile master production plan (Time & Action) from this order.
+                Tables\Actions\Action::make('createPlan')->label('Production plan')->icon('heroicon-o-calendar-days')->color('gray')
+                    ->visible(fn (SalesOrder $record): bool => in_array($record->status, [SalesOrderStatus::Confirmed, SalesOrderStatus::PartiallyDelivered], true))
+                    ->requiresConfirmation()
+                    ->modalDescription('Creates a production plan with the standard knitting → dyeing → finishing stages, dated to the delivery date. No stock or ledger impact.')
+                    ->action(function (SalesOrder $record): void {
+                        $plan = app(\App\Actions\Process\GenerateProductionPlanFromSalesOrder::class)->handle($record);
+                        Notification::make()->title('Production plan '.$plan->reference.' ready')
+                            ->body('Open Textile → Production Plans to schedule and release stages.')->success()->send();
+                    }),
                 // Create a Delivery Order when the company requires the DO workflow.
                 Tables\Actions\Action::make('createDo')->label('Create DO')->icon('heroicon-o-truck')->color('success')
                     ->visible(fn (SalesOrder $record): bool => $record->status->isDeliverable() && self::requiresDeliveryOrder())

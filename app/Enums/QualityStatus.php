@@ -9,6 +9,8 @@ enum QualityStatus: string
 {
     case Passed = 'passed';
     case Partial = 'partial';
+    case Conditional = 'conditional';
+    case Rework = 'rework';
     case Failed = 'failed';
 
     public function label(): string
@@ -20,7 +22,8 @@ enum QualityStatus: string
     {
         return match ($this) {
             self::Passed => 'success',
-            self::Partial => 'warning',
+            self::Partial, self::Conditional => 'warning',
+            self::Rework => 'info',
             self::Failed => 'danger',
         };
     }

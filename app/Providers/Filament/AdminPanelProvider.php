@@ -52,6 +52,7 @@ class AdminPanelProvider extends PanelProvider
                 'Purchasing',
                 'Inventory',
                 'Manufacturing',
+                'Textile',
                 'Accounts',
                 'HR',
                 'CRM',

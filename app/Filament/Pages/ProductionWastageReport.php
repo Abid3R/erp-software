@@ -47,7 +47,7 @@ class ProductionWastageReport extends Page implements HasForms
 
     public function reportHeaders(): array
     {
-        return ['Date', 'Ref', 'Process', 'Product', 'Produced', 'Wastage', 'QC rejected'];
+        return ['Date', 'Ref', 'Process', 'Product', 'Produced', 'Wastage', 'QC rejected', 'Exp %', 'Act %'];
     }
 
     public function reportRows(): array
@@ -79,6 +79,8 @@ class ProductionWastageReport extends Page implements HasForms
                     $this->qty($o->produced_quantity),
                     $this->qty((string) $wastage),
                     $this->qty((string) $rejected),
+                    $o->expected_wastage_percent !== null ? $this->qty((string) $o->expected_wastage_percent) : '—',
+                    $this->qty((string) $o->actualWastagePercent()),
                 ];
             })
             ->filter()

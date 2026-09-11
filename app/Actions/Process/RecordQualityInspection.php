@@ -57,7 +57,7 @@ class RecordQualityInspection
         }
 
         return DB::transaction(function () use ($order, $inspected, $passed, $rejected, $defects, $remarks): QualityInspection {
-            $order->loadMissing('warehouse.company', 'outputProduct', 'outputBatch');
+            $order->loadMissing('warehouse.company', 'outputProduct', 'outputBatch', 'processType');
             $companyId = (int) $order->company_id;
 
             // Rejected output must not remain available: remove it from stock and
@@ -100,6 +100,7 @@ class RecordQualityInspection
                 'reference' => null,
                 'inspectable_type' => $order->getMorphClass(),
                 'inspectable_id' => $order->getKey(),
+                'stage' => $order->processType?->category?->value,
                 'batch_id' => $order->output_batch_id,
                 'product_id' => $order->output_product_id,
                 'inspected_quantity' => (string) $inspected->toScale(4, RoundingMode::HALF_UP),

@@ -60,10 +60,39 @@ class ProductResource extends Resource
                     ->numeric()->default(0)->minValue(0)
                     ->prefix(config('erp.currency.symbol')),
                 Forms\Components\TextInput::make('reorder_level')->numeric()->minValue(0),
+                Forms\Components\TextInput::make('default_wastage_percent')->label('Default wastage %')
+                    ->numeric()->minValue(0)->suffix('%')
+                    ->helperText('Expected process loss when this product is manufactured. Optional.'),
                 Forms\Components\Toggle::make('is_active')->default(true),
                 Forms\Components\Toggle::make('tracks_batch')->label('Track batches'),
                 Forms\Components\Toggle::make('tracks_serial')->label('Track serials'),
             ]),
+            Forms\Components\Section::make('Textile')->columns(2)->collapsed()
+                ->description('Optional — only for textile products (yarn, grey/dyed/finished fabric). Leave off for normal products.')
+                ->schema([
+                    Forms\Components\Toggle::make('is_textile')->label('This is a textile product')->live(),
+                    Forms\Components\Select::make('textile_type')->native(false)
+                        ->options([
+                            'yarn' => 'Yarn', 'grey_fabric' => 'Grey fabric', 'dyed_fabric' => 'Dyed fabric',
+                            'finished_fabric' => 'Finished fabric', 'accessory' => 'Accessory', 'other' => 'Other',
+                        ])->visible(fn (Forms\Get $get): bool => (bool) $get('is_textile')),
+                    Forms\Components\TextInput::make('fabric_type')->placeholder('e.g. Single Jersey')
+                        ->visible(fn (Forms\Get $get): bool => (bool) $get('is_textile')),
+                    Forms\Components\TextInput::make('yarn_type')->placeholder('e.g. 30s Combed Cotton')
+                        ->visible(fn (Forms\Get $get): bool => (bool) $get('is_textile')),
+                    Forms\Components\TextInput::make('gsm')->label('GSM')
+                        ->visible(fn (Forms\Get $get): bool => (bool) $get('is_textile')),
+                    Forms\Components\TextInput::make('width')->placeholder('e.g. 72 Inch Open')
+                        ->visible(fn (Forms\Get $get): bool => (bool) $get('is_textile')),
+                    Forms\Components\TextInput::make('colour')
+                        ->visible(fn (Forms\Get $get): bool => (bool) $get('is_textile')),
+                    Forms\Components\TextInput::make('shade')
+                        ->visible(fn (Forms\Get $get): bool => (bool) $get('is_textile')),
+                    Forms\Components\TextInput::make('construction')->placeholder('e.g. 20x16 / 128x60')
+                        ->visible(fn (Forms\Get $get): bool => (bool) $get('is_textile')),
+                    Forms\Components\Toggle::make('is_roll_tracked')->label('Track individual rolls')
+                        ->visible(fn (Forms\Get $get): bool => (bool) $get('is_textile')),
+                ]),
         ]);
     }
 

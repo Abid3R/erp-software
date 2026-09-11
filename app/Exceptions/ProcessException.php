@@ -65,4 +65,29 @@ class ProcessException extends RuntimeException
     {
         return new self('Rejected quantity cannot exceed the quantity produced.');
     }
+
+    public static function notSubcontract(): self
+    {
+        return new self('This action only applies to a sub-contract (job-work) order.');
+    }
+
+    public static function subcontractorRequired(): self
+    {
+        return new self('Select the sub-contractor before recording the service charge.');
+    }
+
+    public static function noServiceCharge(): self
+    {
+        return new self('Set the billed quantity and service rate before recording the charge.');
+    }
+
+    public static function alreadyCharged(): self
+    {
+        return new self('The sub-contract service charge has already been recorded for this order.');
+    }
+
+    public static function noStages(): self
+    {
+        return new self('Add at least one production stage before generating process orders.');
+    }
 }

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Product extends Model
 {
@@ -21,7 +22,9 @@ class Product extends Model
     protected $fillable = [
         'company_id', 'category_id', 'brand_id', 'unit_id', 'purchase_unit_id',
         'sales_unit_id', 'sku', 'barcode', 'name', 'description', 'cost_price',
-        'selling_price', 'tracks_batch', 'tracks_serial', 'reorder_level', 'is_active',
+        'selling_price', 'tracks_batch', 'tracks_serial', 'is_service', 'reorder_level', 'is_active',
+        'is_textile', 'textile_type', 'fabric_type', 'yarn_type', 'gsm', 'width', 'colour',
+        'shade', 'construction', 'is_roll_tracked', 'default_wastage_percent',
     ];
 
     /** @return array<string, string> */
@@ -33,7 +36,11 @@ class Product extends Model
             'reorder_level' => 'decimal:4',
             'tracks_batch' => 'boolean',
             'tracks_serial' => 'boolean',
+            'is_service' => 'boolean',
             'is_active' => 'boolean',
+            'is_textile' => 'boolean',
+            'is_roll_tracked' => 'boolean',
+            'default_wastage_percent' => 'decimal:3',
         ];
     }
 
@@ -65,5 +72,17 @@ class Product extends Model
     public function manufacturingOrders(): HasMany
     {
         return $this->hasMany(ManufacturingOrder::class);
+    }
+
+    /** The product's standard fabric/knitting specification master. @return HasOne<ProductSpecification, $this> */
+    public function specification(): HasOne
+    {
+        return $this->hasOne(ProductSpecification::class);
+    }
+
+    /** The product's standard dyeing specification master (for dyed fabrics). @return HasOne<DyeingSpecification, $this> */
+    public function dyeingSpecification(): HasOne
+    {
+        return $this->hasOne(DyeingSpecification::class);
     }
 }
