@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\ProductionPlanStatus;
 use App\Filament\Resources\ProductionPlanResource\Pages;
+use App\Filament\Resources\ProductionPlanResource\RelationManagers\ProcessOrdersRelationManager;
 use App\Filament\Resources\ProductionPlanResource\RelationManagers\StagesRelationManager;
 use App\Models\ProductionPlan;
 use Filament\Forms;
@@ -105,6 +106,11 @@ class ProductionPlanResource extends Resource
                     ->icon('heroicon-o-printer')->color('gray')
                     ->url(fn (ProductionPlan $record): string => route('print.production-plan', $record))
                     ->openUrlInNewTab(),
+                Tables\Actions\Action::make('summary')->label('Order summary')
+                    ->icon('heroicon-o-document-chart-bar')->color('gray')
+                    ->visible(fn (ProductionPlan $record): bool => $record->sales_order_id !== null)
+                    ->url(fn (ProductionPlan $record): string => route('print.order-summary', $record->sales_order_id))
+                    ->openUrlInNewTab(),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
@@ -115,6 +121,7 @@ class ProductionPlanResource extends Resource
     {
         return [
             StagesRelationManager::class,
+            ProcessOrdersRelationManager::class,
         ];
     }
 

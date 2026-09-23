@@ -59,6 +59,26 @@ it('builds a plan from a sales order with the stages in production order', funct
         ->and((float) $stages[0]->planned_quantity)->toBe(300.0);
 });
 
+it('consolidates knitting by fabric quality across colours, but dyes/finishes per colour', function () {
+    [$company, $so] = planScenario();
+    $kg = Unit::query()->where('code', 'KG')->first();
+    // Same quality (composition + GSM + width) as the primary product, different colour.
+    $so->lines->first()->product->update(['fabric_type' => 'Fleece', 'construction' => '100% Cotton', 'gsm' => '280', 'width' => '72 Open', 'colour' => 'Navy']);
+    $black = Product::create(['unit_id' => $kg->getKey(), 'sku' => 'FG-BLK', 'name' => 'Fleece Black', 'cost_price' => 0, 'selling_price' => 0,
+        'is_textile' => true, 'fabric_type' => 'Fleece', 'construction' => '100% Cotton', 'gsm' => '280', 'width' => '72 Open', 'colour' => 'Black']);
+    $so->lines()->create(['product_id' => $black->getKey(), 'quantity_ordered' => 200, 'unit_price' => 600]);
+
+    $plan = app(GenerateProductionPlanFromSalesOrder::class)->handle($so->refresh()->load('lines.product'));
+
+    // 1 knit (both colours, same quality → summed 500) + 2 dye + 2 finish = 5 stages.
+    $knit = $plan->stages->filter(fn ($s) => $s->processType->code === 'KNIT');
+    $dye = $plan->stages->filter(fn ($s) => $s->processType->code === 'DYE');
+    expect($plan->stages)->toHaveCount(5)
+        ->and($knit)->toHaveCount(1)
+        ->and((float) $knit->first()->planned_quantity)->toBe(500.0)   // 300 Navy + 200 Black knitted together
+        ->and($dye)->toHaveCount(2);                                    // one dye lot per colour
+});
+
 it('is idempotent per order — regenerating returns the same plan', function () {
     [, $so] = planScenario();
 

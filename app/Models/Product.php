@@ -24,7 +24,7 @@ class Product extends Model
         'sales_unit_id', 'sku', 'barcode', 'name', 'description', 'cost_price',
         'selling_price', 'tracks_batch', 'tracks_serial', 'is_service', 'reorder_level', 'is_active',
         'is_textile', 'textile_type', 'fabric_type', 'yarn_type', 'gsm', 'width', 'colour',
-        'shade', 'construction', 'is_roll_tracked', 'default_wastage_percent',
+        'shade', 'style', 'construction', 'is_roll_tracked', 'default_wastage_percent',
     ];
 
     /** @return array<string, string> */

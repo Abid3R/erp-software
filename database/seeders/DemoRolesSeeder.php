@@ -53,6 +53,28 @@ class DemoRolesSeeder extends Seeder
             'resources' => ['bill::of::materials', 'manufacturing::order'],
             'pages' => ['Mrp'],
         ],
+        'textile' => [
+            'resources' => [
+                'lab::dip', 'process::order', 'process::route', 'process::type', 'production::plan',
+                'knitting::subcontract', 'dyeing::specification', 'fabric::specification', 'fabric::roll',
+                'quality::inspection', 'machine',
+            ],
+            'pages' => [
+                'ProductionRegister', 'ProductionReport', 'ProductionCostingReport', 'ProductionWastageReport',
+                'MaterialConsumptionReport', 'MachinePerformanceReport', 'QualityReport', 'ReworkReport',
+                'RollTraceabilityReport', 'WipValuation',
+            ],
+        ],
+        'export' => [
+            'resources' => [
+                'letter::of::credit', 'proforma::invoice', 'commercial::invoice', 'export::shipment', 'packing::list',
+            ],
+            'pages' => [
+                'LcRegister', 'LcUtilizationReport', 'LcOutstandingReport', 'PiRegister', 'PiVsLcReport',
+                'CommercialInvoiceRegister', 'ExportSalesRegister', 'ExportReceivableReport',
+                'ShipmentRegister', 'CustomerExportHistory', 'OrderVsPiVsLcVsShipmentReport',
+            ],
+        ],
         'accounting' => [
             'resources' => ['account', 'journal', 'payment', 'expense', 'tax::rate', 'opening::balance', 'fixed::asset'],
             'pages' => [

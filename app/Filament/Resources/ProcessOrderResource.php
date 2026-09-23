@@ -108,6 +108,51 @@ class ProcessOrderResource extends Resource
         }
     }
 
+    /**
+     * On-load autofill: fill EVERY empty spec field (composition, GSM, width, colour,
+     * machine dia, gauge, stitch length, …) from the output product's fabric + dyeing
+     * specs — per field, so anything you've already typed is left untouched.
+     */
+    public static function hydrateSpecification(mixed $productId, \Filament\Forms\Get $get, callable $set): void
+    {
+        if (empty($productId)) {
+            return;
+        }
+        $id = (int) $productId;
+        $fabric = ProductSpecification::query()->where('product_id', $id)->first();
+        $dye = DyeingSpecification::query()->where('product_id', $id)->first();
+
+        $fillHeader = function (string $field, $value) use ($get, $set): void {
+            if (filled($value) && blank($get($field))) {
+                $set($field, $value);
+            }
+        };
+        $fillSpec = function (string $key, $value) use ($get, $set): void {
+            if (filled($value) && blank($get('specifications.'.$key))) {
+                $set('specifications.'.$key, (string) $value);
+            }
+        };
+
+        if ($fabric !== null) {
+            $fillHeader('fabric_composition', $fabric->fabric_composition);
+            $fillHeader('gsm', $fabric->gsm);
+            $fillHeader('fabric_width', $fabric->fabric_width);
+            $fillHeader('colour', $fabric->colour);
+            $fillHeader('colour_ref', $fabric->colour_ref);
+            foreach ($fabric->toSpecificationsArray() as $key => $value) {
+                $fillSpec($key, $value);
+            }
+        }
+        if ($dye !== null) {
+            $fillHeader('colour', $dye->colour);
+            $fillHeader('colour_ref', $dye->colour_ref);
+            $fillHeader('gsm', $dye->gsm);
+            foreach ($dye->toSpecificationsArray() as $key => $value) {
+                $fillSpec($key, $value);
+            }
+        }
+    }
+
     /** Fill the form's colour + dyeing parameters from an approved lab dip (the recipe master). */
     public static function applyLabDip(mixed $labDipId, callable $set): void
     {
@@ -268,6 +313,11 @@ class ProcessOrderResource extends Resource
                     ->searchable()
                     ->live()
                     ->afterStateUpdated(fn ($state, Forms\Set $set) => self::applyLabDip($state, $set))
+                    ->afterStateHydrated(function ($state, Forms\Get $get, Forms\Set $set): void {
+                        if (filled($state) && blank($get('colour'))) {
+                            self::applyLabDip($state, $set);
+                        }
+                    })
                     ->helperText('Required for dyeing — pick a customer/internally approved colour. Its recipe auto-fills below.')
                     ->visible(fn (Forms\Get $get): bool => $get('process_type_id') !== null
                         && (bool) ProcessType::query()->whereKey($get('process_type_id'))->value('requires_lab_dip'))
@@ -279,6 +329,8 @@ class ProcessOrderResource extends Resource
                     ->relationship('outputProduct', 'name')->searchable()->preload()->required()
                     ->live()
                     ->afterStateUpdated(fn ($state, Forms\Set $set) => self::applyProductSpecification($state, $set))
+                    // Auto-fill on load too — fills every empty spec field, keeps your edits.
+                    ->afterStateHydrated(fn ($state, Forms\Get $get, Forms\Set $set) => self::hydrateSpecification($state, $get, $set))
                     ->helperText('e.g. grey fabric, dyed fabric, finished fabric. Its saved specification auto-fills below.'),
                 Forms\Components\TextInput::make('planned_quantity')->numeric()->minValue(0.0001)->default(1)->required(),
                 Forms\Components\TextInput::make('expected_wastage_percent')->label('Expected wastage %')

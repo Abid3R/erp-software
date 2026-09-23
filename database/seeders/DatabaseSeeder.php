@@ -661,6 +661,16 @@ class DatabaseSeeder extends Seeder
             }
         });
 
-        $this->command->info("Seeded admin {$adminCfg['email']} + demo company ({$company->code}) + demo catalog.");
+        // Textile manufacturing + export extension — two consolidated seeders:
+        //   ① master data (products, specs, one-part/two-part lab dips, routes)
+        //   ② the full workflow run end to end through the real domain actions.
+        // The core ERP above (incl. the entire HR module) is seeded independently
+        // and is not touched by these.
+        $this->call([
+            TextileMasterDataSeeder::class,
+            TextileWorkflowSeeder::class,
+        ]);
+
+        $this->command->info("Seeded admin {$adminCfg['email']} + demo company ({$company->code}) + demo catalog + textile/export demo.");
     }
 }

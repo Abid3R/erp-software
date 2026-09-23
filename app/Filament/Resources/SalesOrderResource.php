@@ -108,6 +108,11 @@ class SalesOrderResource extends Resource
                         Notification::make()->title('Proforma invoice '.$pi->number.' created')
                             ->body('Open Export → Proforma Invoices to review it.')->success()->send();
                     }),
+                // Item-wise spec sheet (fabrics grouped by style) + one-page production rollup.
+                Tables\Actions\Action::make('specSheet')->label('Spec sheet')->icon('heroicon-o-clipboard-document-list')->color('gray')
+                    ->url(fn (SalesOrder $record): string => route('print.order-spec-sheet', $record))->openUrlInNewTab(),
+                Tables\Actions\Action::make('productionSummary')->label('Production summary')->icon('heroicon-o-document-chart-bar')->color('gray')
+                    ->url(fn (SalesOrder $record): string => route('print.order-summary', $record))->openUrlInNewTab(),
                 // Generate a textile master production plan (Time & Action) from this order.
                 Tables\Actions\Action::make('createPlan')->label('Production plan')->icon('heroicon-o-calendar-days')->color('gray')
                     ->visible(fn (SalesOrder $record): bool => in_array($record->status, [SalesOrderStatus::Confirmed, SalesOrderStatus::PartiallyDelivered], true))

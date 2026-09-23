@@ -25,6 +25,8 @@ Route::middleware(['web', 'auth', 'throttle:120,1'])->prefix('print')->name('pri
     Route::get('proforma-invoice/{proformaInvoice}', [PrintController::class, 'proformaInvoice'])->name('proforma-invoice');
     Route::get('commercial-invoice/{commercialInvoice}', [PrintController::class, 'commercialInvoice'])->name('commercial-invoice');
     Route::get('packing-list/{packingList}', [PrintController::class, 'packingList'])->name('packing-list');
+    Route::get('order-summary/{salesOrder}', [PrintController::class, 'orderSummary'])->name('order-summary');
+    Route::get('order-spec-sheet/{salesOrder}', [PrintController::class, 'orderSpecSheet'])->name('order-spec-sheet');
     Route::get('process-job-card/{processOrder}', [PrintController::class, 'processJobCard'])->name('process-job-card');
     Route::get('subcontract-work-order/{processOrder}', [PrintController::class, 'subcontractWorkOrder'])->name('subcontract-work-order');
     Route::get('production-plan/{productionPlan}', [PrintController::class, 'productionPlan'])->name('production-plan');

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DyeingType;
 use App\Enums\LabDipStatus;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompany;
@@ -28,7 +29,7 @@ class LabDip extends Model
     /** @var list<string> */
     protected $fillable = [
         'company_id', 'reference', 'customer_id', 'sales_order_id', 'proforma_invoice_id',
-        'colour', 'colour_ref', 'dyeing_process', 'substrate', 'gsm', 'liquor_ratio', 'temperature',
+        'colour', 'colour_ref', 'dyeing_process', 'dyeing_type', 'substrate', 'gsm', 'liquor_ratio', 'temperature',
         'dyeing_time', 'ph', 'shade_percentage', 'fastness_wash', 'fastness_rubbing',
         'fastness_light', 'recipe', 'recipe_version', 'sample_ref', 'request_date', 'status',
         'remarks', 'approved_by', 'approved_at', 'created_by',
@@ -39,6 +40,7 @@ class LabDip extends Model
     {
         return [
             'status' => LabDipStatus::class,
+            'dyeing_type' => DyeingType::class,
             'request_date' => 'date',
             'temperature' => 'decimal:2',
             'dyeing_time' => 'integer',

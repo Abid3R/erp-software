@@ -189,8 +189,8 @@
         </tbody>
     </table>
     <p style="margin: 6px 0 0; font-size: 10.5px; color: #4a5464;">
-        Re-load just these anytime with
-        <span style="font-family: 'DejaVu Sans Mono', monospace; background:#f0f4f8; padding:1px 3px; border:1px solid #dce3ea;">php artisan db:seed --class="Database\Seeders\TextileTestCasesSeeder"</span>
+        Re-load the whole textile demo anytime with
+        <span style="font-family: 'DejaVu Sans Mono', monospace; background:#f0f4f8; padding:1px 3px; border:1px solid #dce3ea;">php artisan db:seed --class="Database\Seeders\DemoWalkthroughSeeder"</span>
         &mdash; it is idempotent (won't duplicate).</p>
 
     {{-- ------------------------------------------------------------------ --}}

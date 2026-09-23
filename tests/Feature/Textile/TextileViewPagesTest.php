@@ -76,7 +76,8 @@ it('renders the production plan sheet print view', function () {
         'status' => \App\Enums\ProductionStageStatus::Pending,
     ]);
 
-    $this->actingAs(superAdminFor($company))
-        ->get('/print/production-plan/'.$plan->getKey())
-        ->assertOk();
+    $user = superAdminFor($company);
+    $this->actingAs($user)->get('/print/production-plan/'.$plan->getKey())->assertOk();
+    // The plan edit page renders the Stages + Process Orders panels (grouped by process).
+    $this->actingAs($user)->get('/admin/production-plans/'.$plan->getKey().'/edit')->assertOk();
 });

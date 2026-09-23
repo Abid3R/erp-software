@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Hr\RosterGenerator;
 use App\Domain\Reporting\PartyStatement;
+use App\Domain\Textile\OrderProductionSummary;
 use App\Models\CommercialInvoice;
 use App\Models\Customer;
 use App\Models\DeliveryOrder;
@@ -189,6 +190,39 @@ class PrintController extends Controller
             'pl' => $packingList->load('lines.product', 'customer', 'commercialInvoice', 'shipment', 'company'),
             'company' => $packingList->company,
             'setting' => $packingList->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function orderSpecSheet(SalesOrder $salesOrder): View
+    {
+        $this->authorizeCompany((int) $salesOrder->company_id);
+        $salesOrder->load('lines.product', 'customer', 'company');
+
+        // Group the order's fabrics by Item (style) so each item's components stay together.
+        $byStyle = $salesOrder->lines
+            ->sortBy(fn ($l): string => (string) ($l->product?->style ?? 'zzz').($l->product?->fabric_type ?? ''))
+            ->groupBy(fn ($l): string => $l->product?->style ?: 'Unassigned');
+
+        return view('print.order-spec-sheet', [
+            'order' => $salesOrder,
+            'byStyle' => $byStyle,
+            'company' => $salesOrder->company,
+            'setting' => $salesOrder->company?->reportSettingOrNew(),
+        ]);
+    }
+
+    public function orderSummary(SalesOrder $salesOrder): View
+    {
+        $this->authorizeCompany((int) $salesOrder->company_id);
+
+        $summary = OrderProductionSummary::forSalesOrder($salesOrder->load('customer', 'company'));
+
+        return view('print.order-summary', [
+            'order' => $salesOrder,
+            'rows' => $summary['rows'],
+            'totals' => $summary['totals'],
+            'company' => $salesOrder->company,
+            'setting' => $salesOrder->company?->reportSettingOrNew(),
         ]);
     }
 

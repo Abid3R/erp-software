@@ -79,6 +79,7 @@ class KnittingSubcontractResource extends Resource
                     ->relationship('outputProduct', 'name')->searchable()->preload()->required()
                     ->live()
                     ->afterStateUpdated(fn ($state, Forms\Set $set) => ProcessOrderResource::applyProductSpecification($state, $set))
+                    ->afterStateHydrated(fn ($state, Forms\Get $get, Forms\Set $set) => ProcessOrderResource::hydrateSpecification($state, $get, $set))
                     ->helperText('Its saved specification auto-fills the fabric fields below.'),
                 Forms\Components\TextInput::make('planned_quantity')->label('Planned output qty')
                     ->numeric()->minValue(0.0001)->default(1)->required(),

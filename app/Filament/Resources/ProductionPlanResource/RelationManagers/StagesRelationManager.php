@@ -47,6 +47,12 @@ class StagesRelationManager extends RelationManager
     {
         return $table
             ->defaultSort('sequence')
+            ->groups([
+                \Filament\Tables\Grouping\Group::make('processType.name')->label('Process')->collapsible(),
+            ])
+            ->defaultGroup('processType.name')
+            ->paginated([25, 50, 100, 'all'])
+            ->defaultPaginationPageOption(50)
             ->columns([
                 Tables\Columns\TextColumn::make('sequence')->label('#')->sortable(),
                 Tables\Columns\TextColumn::make('processType.name')->label('Process')->badge(),

@@ -5,26 +5,32 @@ namespace App\Actions\Process;
 use App\Enums\ProcessCategory;
 use App\Enums\ProductionPlanStatus;
 use App\Enums\ProductionStageStatus;
+use App\Models\ProcessRoute;
 use App\Models\ProcessType;
 use App\Models\ProductionPlan;
+use App\Models\ProductSpecification;
 use App\Models\SalesOrder;
 use Brick\Math\BigDecimal;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Builds a master production plan (Time & Action schedule) from a customer order.
- * The plan's targets are *derived* from the order — product, total quantity and the
- * delivery date — so planners never retype them, and it is seeded with the standard
- * textile stage sequence (Knitting → Dyeing → Finishing) drawn from the company's
- * active process types. Dates are laid out forward from today across the window to
- * the delivery date; the planner then adjusts machines/dates and confirms.
+ * Builds ONE production plan (the order's single "production order") from a customer
+ * order, with stages grouped by process — matching how a Bangladeshi mill actually
+ * runs it:
  *
- * Idempotent per order: returns the existing plan if one was already generated.
+ *  - KNITTING is consolidated by grey-fabric *quality* (fabric type + composition +
+ *    GSM + width/dia), summed across colours and styles — because knitting grey does
+ *    not depend on colour. Same quality + different colour ⇒ one knitting run.
+ *  - DYEING and FINISHING are per quality + colour (a dye lot is colour-specific),
+ *    summed across styles that share the same quality and colour.
+ *
+ * The route of the primary product defines the process sequence when configured,
+ * else the default Knitting → Dyeing → Finishing. Idempotent per order.
  */
 class GenerateProductionPlanFromSalesOrder
 {
-    /** Default working days allotted to each stage when no delivery window is given. */
     private const DEFAULT_STAGE_DAYS = 5;
 
     public function handle(SalesOrder $order): ProductionPlan
@@ -34,51 +40,20 @@ class GenerateProductionPlanFromSalesOrder
             return $existing;
         }
 
-        $order->loadMissing('lines');
-        $primaryLine = $order->lines->first();
-        $totalQty = $order->lines->reduce(
-            fn (BigDecimal $c, $l): BigDecimal => $c->plus($l->quantity_ordered),
-            BigDecimal::zero(),
-        );
+        $order->loadMissing('lines.product');
+        $lines = $order->lines->filter(fn ($l): bool => BigDecimal::of($l->quantity_ordered ?? '0')->isPositive())->values();
+        if ($lines->isEmpty()) {
+            $lines = $order->lines->values();
+        }
+        $primaryLine = $lines->first();
+        $totalQty = $lines->reduce(fn (BigDecimal $c, $l): BigDecimal => $c->plus($l->quantity_ordered), BigDecimal::zero());
 
-        // Standard textile stages in production order (knitting first, finishing last).
-        $order_of = [
-            ProcessCategory::Knitting->value => 1,
-            ProcessCategory::Dyeing->value => 2,
-            ProcessCategory::Printing->value => 3,
-            ProcessCategory::Finishing->value => 4,
-        ];
-        // One representative stage per category (the lowest-sort type), so the plan
-        // reads Knitting → Dyeing → Finishing — not one stage per finishing variant.
-        $stageTypes = ProcessType::query()
-            ->where('is_active', true)
-            ->whereIn('category', array_keys($order_of))
-            ->orderBy('sort')
-            ->get()
-            ->groupBy(fn (ProcessType $t): string => $t->category->value)
-            ->map(fn ($group) => $group->first())
-            ->sortBy(fn (ProcessType $t): int => $order_of[$t->category->value] ?? 99)
-            ->values();
-
-        // Pull fabric details from the primary product's specification master, if any.
+        $sequence = $this->processSequence($primaryLine?->product_id);
         $spec = $primaryLine?->product_id
-            ? \App\Models\ProductSpecification::query()->where('product_id', $primaryLine->product_id)->first()
+            ? ProductSpecification::query()->where('product_id', $primaryLine->product_id)->first()
             : null;
 
-        // Prefer the product's configured process route (routing) over the default
-        // category sequence, so production is not hard-coded to one flow.
-        $route = $primaryLine?->product_id
-            ? \App\Models\ProcessRoute::query()->where('product_id', $primaryLine->product_id)
-                ->where('is_active', true)->with('steps')->first()
-            : null;
-
-        // Normalise the stage definitions: the route's ordered steps if configured,
-        // otherwise the default category sequence.
-        $stageDefs = $route !== null && $route->steps->isNotEmpty()
-            ? $route->steps->map(fn ($s): array => ['process_type_id' => $s->process_type_id, 'output_product_id' => $s->output_product_id])->values()
-            : $stageTypes->map(fn ($t): array => ['process_type_id' => $t->getKey(), 'output_product_id' => null])->values();
-
-        return DB::transaction(function () use ($order, $primaryLine, $totalQty, $stageDefs, $spec): ProductionPlan {
+        return DB::transaction(function () use ($order, $primaryLine, $totalQty, $lines, $sequence, $spec): ProductionPlan {
             $start = Carbon::today();
             $due = $order->delivery_date ? Carbon::parse($order->delivery_date) : null;
 
@@ -86,7 +61,7 @@ class GenerateProductionPlanFromSalesOrder
                 'sales_order_id' => $order->getKey(),
                 'customer_id' => $order->customer_id,
                 'buyer' => $order->customer?->name,
-                'colour' => $spec?->colour,
+                'colour' => $lines->count() > 1 ? null : $spec?->colour,
                 'fabric_composition' => $spec?->fabric_composition,
                 'gsm' => $spec?->gsm,
                 'fabric_width' => $spec?->fabric_width,
@@ -100,28 +75,117 @@ class GenerateProductionPlanFromSalesOrder
                 'status' => ProductionPlanStatus::Draft,
             ]);
 
-            $count = max($stageDefs->count(), 1);
-            // Even span from start to due date when a window exists; else fixed slots.
-            $spanDays = $due ? max((int) $start->diffInDays($due), $count) : $count * self::DEFAULT_STAGE_DAYS;
-            $perStage = (int) max(1, intdiv($spanDays, $count));
+            $procCount = max($sequence->count(), 1);
+            $spanDays = $due ? max((int) $start->diffInDays($due), $procCount) : $procCount * self::DEFAULT_STAGE_DAYS;
+            $perProc = (int) max(1, intdiv($spanDays, $procCount));
 
-            $cursor = $start->copy();
-            foreach ($stageDefs as $i => $def) {
-                $stageStart = $cursor->copy();
-                $stageEnd = $cursor->copy()->addDays($perStage - 1);
-                $plan->stages()->create([
-                    'process_type_id' => $def['process_type_id'],
-                    'output_product_id' => $def['output_product_id'],
-                    'sequence' => $i + 1,
-                    'planned_quantity' => (string) $totalQty,
-                    'planned_start' => $stageStart->toDateString(),
-                    'planned_end' => $stageEnd->toDateString(),
-                    'status' => ProductionStageStatus::Pending,
-                ]);
-                $cursor = $stageEnd->copy()->addDay();
+            $seq = 1;
+            foreach ($sequence as $procIndex => $type) {
+                $procStart = $start->copy()->addDays($procIndex * $perProc);
+                $procEnd = $procStart->copy()->addDays($perProc - 1);
+                $isKnitting = $type->category === ProcessCategory::Knitting;
+
+                // Knitting groups by quality only; dyeing/finishing by quality + colour.
+                $groups = $lines->groupBy(fn ($line): string => $isKnitting
+                    ? $this->qualityKey($line->product)
+                    : $this->qualityKey($line->product).'||'.($line->product?->colour ?? ''));
+
+                $isDyeing = $type->category === ProcessCategory::Dyeing;
+
+                foreach ($groups as $groupLines) {
+                    $qty = $groupLines->reduce(fn (BigDecimal $c, $l): BigDecimal => $c->plus($l->quantity_ordered), BigDecimal::zero());
+                    $product = $groupLines->first()->product;
+                    $sameProduct = $groupLines->pluck('product_id')->unique()->count() === 1;
+
+                    // Dyeing expands into its one-part / two-part sub-steps when the colour's
+                    // approved lab dip specifies a dyeing type; otherwise it stays one stage.
+                    $steps = $isDyeing ? $this->dyeingStepTypes($product?->colour) : null;
+                    $steps = ($steps !== null && $steps->isNotEmpty()) ? $steps : collect([$type]);
+                    $multi = $steps->count() > 1;
+
+                    foreach ($steps as $stepType) {
+                        $plan->stages()->create([
+                            'process_type_id' => $stepType->getKey(),
+                            // Knit produces grey; dye/finish target the finished SKU only when the
+                            // group is one SKU and not a multi-step (intermediate) dyeing stage.
+                            'output_product_id' => (! $isKnitting && $sameProduct && ! $multi) ? $product?->getKey() : null,
+                            'sequence' => $seq++,
+                            'planned_quantity' => (string) $qty,
+                            'planned_start' => $procStart->toDateString(),
+                            'planned_end' => $procEnd->toDateString(),
+                            'status' => ProductionStageStatus::Pending,
+                            'notes' => $this->label($product, $isKnitting).($multi ? ' — '.$stepType->name : ''),
+                        ]);
+                    }
+                }
             }
 
             return $plan->refresh();
         });
+    }
+
+    /** The ordered process types: the product's route if set, else one per category (Knit → Dye → Finish). */
+    private function processSequence(?int $productId): Collection
+    {
+        if ($productId !== null) {
+            $route = ProcessRoute::query()->where('product_id', $productId)->where('is_active', true)
+                ->with('steps.processType')->first();
+            if ($route !== null && $route->steps->isNotEmpty()) {
+                return $route->steps->map(fn ($s) => $s->processType)->filter()->values();
+            }
+        }
+
+        $order_of = [
+            ProcessCategory::Knitting->value => 1, ProcessCategory::Dyeing->value => 2,
+            ProcessCategory::Printing->value => 3, ProcessCategory::Finishing->value => 4,
+        ];
+
+        return ProcessType::query()->where('is_active', true)->whereIn('category', array_keys($order_of))
+            ->orderBy('sort')->get()
+            ->groupBy(fn (ProcessType $t): string => $t->category->value)
+            ->map(fn ($g) => $g->first())
+            ->sortBy(fn (ProcessType $t): int => $order_of[$t->category->value] ?? 99)
+            ->values();
+    }
+
+    /**
+     * The ordered dyeing sub-step process types for a colour — from its approved lab
+     * dip's dyeing type (one-part / two-part). Null when no dyeing type is set, so the
+     * dyeing phase stays a single stage (unchanged behaviour).
+     *
+     * @return Collection<int, ProcessType>|null
+     */
+    private function dyeingStepTypes(?string $colour): ?Collection
+    {
+        if (blank($colour)) {
+            return null;
+        }
+        $dip = \App\Models\LabDip::query()->approved()
+            ->where('colour', $colour)->whereNotNull('dyeing_type')->latest('id')->first();
+        if ($dip === null || $dip->dyeing_type === null) {
+            return null;
+        }
+        $codes = $dip->dyeing_type->stepCodes();
+        $types = ProcessType::query()->whereIn('code', $codes)->where('is_active', true)->get()->keyBy('code');
+
+        return collect($codes)->map(fn (string $c) => $types->get($c))->filter()->values();
+    }
+
+    /** Grey-fabric quality key: fabric type + composition + GSM + width (colour-independent). */
+    private function qualityKey($product): string
+    {
+        return implode('|', [
+            $product?->fabric_type, $product?->construction, $product?->gsm, $product?->width,
+        ]);
+    }
+
+    private function label($product, bool $isKnitting): string
+    {
+        $quality = trim(implode(' ', array_filter([
+            $product?->fabric_type, $product?->gsm ? $product->gsm.' GSM' : null, $product?->width,
+        ])));
+        $quality = $quality !== '' ? $quality : 'Fabric';
+
+        return $isKnitting ? $quality : trim($quality.' · '.($product?->colour ?? ''), ' ·');
     }
 }

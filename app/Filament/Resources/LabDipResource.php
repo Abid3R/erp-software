@@ -64,6 +64,9 @@ class LabDipResource extends Resource
                             'reactive' => 'Reactive', 'disperse' => 'Disperse', 'pigment' => 'Pigment',
                             'direct' => 'Direct', 'vat' => 'Vat', 'acid' => 'Acid',
                         ])->placeholder('—'),
+                    Forms\Components\Select::make('dyeing_type')->label('Dyeing type')->native(false)
+                        ->options(\App\Enums\DyeingType::options())
+                        ->helperText('Per the approved recipe. One-Part: Pretreat → Dye → Wash-off. Two-Part: Pretreat → Dye 1 → Inter. Wash → Dye 2 → Wash-off.'),
                     Forms\Components\TextInput::make('substrate')->label('Substrate / fabric')->maxLength(255)
                         ->placeholder('e.g. Single Jersey Cotton'),
                     Forms\Components\TextInput::make('gsm')->label('GSM')->maxLength(32),
